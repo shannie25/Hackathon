@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TapSakay — Commuter</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --amber: #F59E00;
+  --amber-light: #FFF4DC;
+  --amber-mid: #FFE299;
+  --amber-border: #FBBF24;
+  --black: #111111;
+  --ink: #1C1C1E;
+  --ink2: #3A3A3C;
+  --gray: #8E8E93;
+  --gray-light: #E5E5EA;
+  --bg: #F5F5F7;
+  --white: #FFFFFF;
+  --green: #16A34A;
+  --green-light: #DCFCE7;
+  --green-border: #86EFAC;
+  --red: #DC2626;
+  --red-light: #FEE2E2;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+.app { max-width: 430px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
+
+/* HEADER */
+.header {
+  background: var(--white);
+  padding: 18px 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1.5px solid var(--gray-light);
+  position: sticky; top: 0; z-index: 10;
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; line-height: 1; }
+.logo .tap { color: var(--amber); }
+.logo .sakay { color: var(--ink); }
+.logo-sub { font-size: 10px; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+.online-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green-light); border: 1px solid var(--green-border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 11px; font-weight: 600; color: var(--green); letter-spacing: .3px;
+}
+.online-badge::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* STOP BANNER */
+.stop-banner {
+  background: var(--amber);
+  padding: 18px 20px 16px;
+  position: relative; overflow: hidden;
+}
+.stop-banner::after {
+  content: ''; position: absolute; right: -24px; top: -24px;
+  width: 110px; height: 110px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+}
+.stop-eye { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(0,0,0,0.45); margin-bottom: 2px; }
+.stop-name { font-family: 'Bebas Neue', sans-serif; font-size: 44px; letter-spacing: 1px; line-height: 1; color: var(--black); }
+.stop-sub { font-size: 13px; color: rgba(0,0,0,0.5); margin-top: 3px; font-weight: 500; }
+
+/* ARRIVALS */
+.arrivals-section { padding: 16px 16px 8px; }
+.sec-label { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+.live-tag { display: flex; align-items: center; gap: 4px; color: var(--green); font-weight: 600; font-size: 10px; letter-spacing: 1px; }
+.live-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+
+.jeep-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-light);
+  border-radius: 16px; padding: 14px 16px;
+  display: flex; align-items: center; gap: 14px; margin-bottom: 10px;
+  animation: cardIn .35s cubic-bezier(.22,1,.36,1) both;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.jeep-card:nth-child(1) { animation-delay: .05s; }
+.jeep-card:nth-child(2) { animation-delay: .15s; }
+@keyframes cardIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+.jeep-card.prime {
+  border-color: var(--amber-border);
+  background: var(--white);
+  box-shadow: 0 2px 12px rgba(245,158,0,0.12);
+}
+.jeep-card.prime::before {
+  /* left accent stripe not needed on light bg — handled by border */
+}
+
+.route-badge {
+  font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px;
+  width: 52px; height: 52px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: var(--amber-light); color: var(--amber);
+  border: 1.5px solid var(--amber-border);
+}
+.jeep-card.prime .route-badge { background: var(--amber); color: var(--black); border-color: var(--amber); }
+
+.jeep-info { flex: 1; min-width: 0; }
+.jeep-dest { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jeep-meta { display: flex; gap: 6px; align-items: center; margin-top: 5px; flex-wrap: wrap; }
+.tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: .3px; }
+.t-green { background: var(--green-light); color: var(--green); }
+.t-gray { background: var(--gray-light); color: var(--ink2); }
+.t-amber { background: var(--amber-light); color: #92600A; }
+
+.pbar { height: 3px; background: var(--gray-light); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.pbar-fill { height: 100%; background: var(--amber); border-radius: 2px; transition: width 1s linear; }
+
+.eta-col { text-align: right; flex-shrink: 0; }
+.eta-num { font-family: 'Bebas Neue', sans-serif; font-size: 40px; line-height: 1; color: var(--amber); transition: color .3s; }
+.eta-unit { font-size: 10px; color: var(--gray); letter-spacing: 1px; margin-top: 1px; text-transform: uppercase; }
+
+/* QUEUE */
+.queue-section { padding: 0 16px 12px; }
+.queue-card { background: var(--white); border: 1.5px solid var(--gray-light); border-radius: 14px; padding: 12px 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.queue-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.queue-lbl { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; }
+.queue-count { font-size: 11px; font-weight: 600; color: var(--ink2); }
+.queue-row { display: flex; gap: 6px; align-items: center; }
+.picon {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--gray-light); border: 1.5px solid #D1D1D6;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .3s cubic-bezier(.22,1,.36,1);
+  flex-shrink: 0;
+}
+.picon.on { background: var(--amber-light); border-color: var(--amber-border); }
+.picon.you { background: var(--green-light); border-color: var(--green-border); }
+.you-lbl { font-size: 11px; font-weight: 600; color: var(--green); margin-left: 4px; display: none; }
+
+/* DIVIDER */
+.divider { height: 1.5px; background: var(--gray-light); margin: 4px 16px 14px; }
+
+/* TAP ZONE */
+.tap-section { padding: 0 16px 16px; flex: 1; display: flex; flex-direction: column; }
+.tap-label { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+
+.tap-zone {
+  flex: 1; min-height: 195px;
+  background: var(--amber);
+  border-radius: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; position: relative; overflow: hidden;
+  transition: transform .14s cubic-bezier(.22,1,.36,1), background .3s;
+  box-shadow: 0 4px 20px rgba(245,158,0,0.3);
+}
+.tap-zone:active { transform: scale(.97); }
+.tap-zone.tapped { background: var(--green); box-shadow: 0 4px 20px rgba(22,163,74,0.3); }
+
+.ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.3); transform: scale(0); animation: rpl .65s linear forwards; pointer-events: none; }
+@keyframes rpl { to { transform: scale(5); opacity: 0; } }
+
+.tap-idle { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.tap-ring {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: rgba(0,0,0,0.1); border: 2px solid rgba(0,0,0,0.15);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  transition: transform .2s;
+}
+.tap-zone:active .tap-ring { transform: scale(.88); }
+.tap-word { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 3px; color: var(--black); }
+.tap-hint { font-size: 13px; color: rgba(0,0,0,0.5); margin-top: 4px; font-weight: 500; }
+.tap-for { margin-top: 12px; background: rgba(0,0,0,0.1); border-radius: 20px; padding: 5px 16px; font-size: 12px; font-weight: 600; color: rgba(0,0,0,0.6); letter-spacing: .3px; }
+
+.tap-done { display: none; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.chk-ring { width: 66px; height: 66px; border-radius: 50%; border: 2.5px solid rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; animation: pop .4s cubic-bezier(.22,1,.36,1); }
+@keyframes pop { from{transform:scale(.4);opacity:0} to{transform:scale(1);opacity:1} }
+.done-word { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; color: var(--black); }
+.done-sub { font-size: 13px; color: rgba(0,0,0,0.55); margin-top: 4px; font-weight: 500; }
+.done-badge { margin-top: 12px; background: rgba(0,0,0,0.12); border-radius: 20px; padding: 5px 16px; font-size: 13px; font-weight: 700; color: var(--black); }
+
+.tap-zone.tapped .tap-idle { display: none; }
+.tap-zone.tapped .tap-done { display: flex; }
+
+/* SAVINGS BAR */
+.savings-bar {
+  margin: 0 16px 24px;
+  background: var(--white); border: 1.5px solid var(--gray-light);
+  border-radius: 16px; padding: 14px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.sav-item { text-align: center; }
+.sav-lbl { font-size: 10px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+.sav-val { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: .5px; }
+.sv-red { color: var(--red); text-decoration: line-through; }
+.sv-amber { color: var(--amber); }
+.sv-green { color: var(--green); }
+.sav-vl { width: 1.5px; height: 36px; background: var(--gray-light); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div>
+      <div class="logo"><span class="tap">TAP</span><span class="sakay">SAKAY</span></div>
+      <div class="logo-sub">Cebu Transit · Real-time</div>
+    </div>
+    <div class="online-badge">Online</div>
+  </div>
+
+  <div class="stop-banner">
+    <div class="stop-eye">You are at</div>
+    <div class="stop-name">JY Square</div>
+    <div class="stop-sub">Lahug · Ayala corridor · Cebu City</div>
+  </div>
+
+  <div class="arrivals-section">
+    <div class="sec-label">
+      Next arrivals
+      <span class="live-tag">Live</span>
+    </div>
+
+    <div class="jeep-card prime">
+      <div class="route-badge">13C</div>
+      <div class="jeep-info">
+        <div class="jeep-dest">SM City → Colon</div>
+        <div class="jeep-meta">
+          <span class="tag t-green" id="seats-tag">9 seats</span>
+          <span class="tag t-gray" id="wait-tag">2 waiting</span>
+          <span class="tag t-amber">₱15</span>
+        </div>
+        <div class="pbar"><div class="pbar-fill" id="pbar" style="width:70%"></div></div>
+      </div>
+      <div class="eta-col">
+        <div class="eta-num" id="eta-val">3</div>
+        <div class="eta-unit" id="eta-lbl">mins away</div>
+      </div>
+    </div>
+
+    <div class="jeep-card">
+      <div class="route-badge">01K</div>
+      <div class="jeep-info">
+        <div class="jeep-dest">Mandaue → Carbon</div>
+        <div class="jeep-meta">
+          <span class="tag t-green">6 seats</span>
+          <span class="tag t-gray">1 waiting</span>
+          <span class="tag t-amber">₱12</span>
+        </div>
+      </div>
+      <div class="eta-col">
+        <div class="eta-num" style="color:var(--gray)">10</div>
+        <div class="eta-unit">mins away</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="queue-section">
+    <div class="queue-card">
+      <div class="queue-top">
+        <div class="queue-lbl">Queue for 13C</div>
+        <div class="queue-count" id="queue-count">2 waiting</div>
+      </div>
+      <div class="queue-row">
+        <div class="picon on">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#92600A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#92600A" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="picon on">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#92600A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#92600A" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="picon" id="you-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#C7C7CC"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#C7C7CC" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="picon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#EBEBEB"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#EBEBEB" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        <div class="picon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#EBEBEB"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#EBEBEB" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        <div class="you-lbl" id="you-lbl">← You</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="tap-section">
+    <div class="tap-label">Register your wait</div>
+    <div class="tap-zone" id="tapZone" onclick="handleTap(event)">
+      <div class="tap-idle">
+        <div class="tap-ring">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+            <rect x="5" y="5" width="24" height="24" rx="6" fill="rgba(0,0,0,0.15)"/>
+            <path d="M11 17l4.5 4.5 8-8" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="tap-word">Slap to Register</div>
+        <div class="tap-hint">Place your sticker anywhere on screen</div>
+        <div class="tap-for">Waiting for 13C → SM City</div>
+      </div>
+      <div class="tap-done">
+        <div class="chk-ring">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M7 16l6 6 12-12" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="done-word">Nagrehistro Na!</div>
+        <div class="done-sub">Driver notified · 13C is coming</div>
+        <div class="done-badge">Arriving in <span id="eta-inline">3</span> mins · ₱85 saved</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="savings-bar">
+    <div class="sav-item"><div class="sav-lbl">Grab / MoveIt</div><div class="sav-val sv-red">₱100</div></div>
+    <div class="sav-vl"></div>
+    <div class="sav-item"><div class="sav-lbl">Jeep fare</div><div class="sav-val sv-amber">₱15</div></div>
+    <div class="sav-vl"></div>
+    <div class="sav-item"><div class="sav-lbl">You save</div><div class="sav-val sv-green">₱85</div></div>
+  </div>
+
+</div>
+<script>
+  let eta = 3, tapped = false;
+
+  // ETA countdown
+  const iv = setInterval(() => {
+    eta = Math.max(0, eta - 1);
+    const pct = 70 + (3 - eta) * 10;
+    document.getElementById('pbar').style.width = Math.min(100, pct) + '%';
+    if (eta === 0) {
+      document.getElementById('eta-val').innerHTML = '<span style="font-size:20px;color:var(--green)">NOW</span>';
+      document.getElementById('eta-lbl').textContent = '';
+      clearInterval(iv);
+    } else {
+      document.getElementById('eta-val').textContent = eta;
+    }
+    const el = document.getElementById('eta-inline');
+    if (el) el.textContent = Math.max(0, eta);
+  }, 1000);
+
+  function handleTap(e) {
+    const z = document.getElementById('tapZone');
+    const r = z.getBoundingClientRect();
+    const rpl = document.createElement('div');
+    rpl.className = 'ripple';
+    const sz = Math.max(r.width, r.height) * 2.4;
+    rpl.style.cssText = `width:${sz}px;height:${sz}px;left:${(e.clientX||r.left+r.width/2)-r.left-sz/2}px;top:${(e.clientY||r.top+r.height/2)-r.top-sz/2}px`;
+    z.appendChild(rpl);
+    setTimeout(() => rpl.remove(), 700);
+    if (tapped) return;
+    tapped = true;
+    z.classList.add('tapped');
+    const yi = document.getElementById('you-icon');
+    yi.classList.add('you');
+    yi.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#16A34A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#16A34A" stroke-width="1.2" stroke-linecap="round"/></svg>';
+    document.getElementById('you-lbl').style.display = 'inline';
+    document.getElementById('wait-tag').textContent = '3 waiting';
+    document.getElementById('queue-count').textContent = '3 waiting';
+  }
+</script>
+</body>
+</html>
