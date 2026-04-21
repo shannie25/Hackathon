@@ -414,6 +414,7 @@
 
 </div>
 
+<script src="tapsakay-sync.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
   const COMMUTER_URL = new URL('TapSakay-Commuter.html', window.location.href).href;
@@ -444,6 +445,38 @@
 
 </script>
 <script>
+  const sync = window.TapSakaySync;
+
+  function seatClassName(count) {
+    return count <= 3 ? 'rpill rp-seats-amber' : 'rpill rp-seats-green';
+  }
+
+  function seatCopy(count) {
+    return count <= 3 ? count + ' seats left' : count + ' seats available';
+  }
+
+  function applySharedState(state) {
+    const route13c = state.routes['13C'];
+    const route04l = state.routes['04L'];
+    const activeCode = route13c?.waiting > 0 ? '13C' : (route04l?.waiting > 0 ? '04L' : state.commuter.routeCode || '13C');
+    const activeWaiting = state.routes[activeCode]?.waiting || 0;
+
+    if (route13c) {
+      document.getElementById('wait-13c').textContent = route13c.waiting + ' waiting';
+      document.getElementById('seats-13c').textContent = seatCopy(route13c.seats);
+      document.getElementById('seats-13c').className = seatClassName(route13c.seats);
+    }
+
+    if (route04l) {
+      document.getElementById('wait-04l').textContent = route04l.waiting + ' waiting';
+      document.getElementById('seats-04l').textContent = route04l.seats <= 3 ? route04l.seats + ' seats left' : route04l.seats + ' seats';
+      document.getElementById('seats-04l').className = route04l.seats <= 3 ? 'rpill rp-seats-amber' : 'rpill rp-seats-green';
+    }
+
+    document.getElementById('demand-footer').innerHTML =
+      '<strong id="demand-count">' + activeWaiting + '</strong> commuter<span id="demand-plural">' + (activeWaiting === 1 ? '' : 's') + '</span> waiting at JY Square for <strong>' + activeCode + '</strong>';
+  }
+
   // Clock
   function updateTime() {
     const now = new Date();
@@ -466,8 +499,6 @@
       // After 8s, reset — simulates jeep arriving and next one becomes #1
       setTimeout(() => {
         el.className = 'eta-big'; eta13c = 9; el.textContent = '9'; lbl.textContent = 'mins away';
-        document.getElementById('seats-13c').textContent = '14 seats available';
-        document.getElementById('seats-13c').className = 'rpill rp-seats-green';
         // #2 becomes a new jeep further back
         document.getElementById('eta-13c-2').textContent = '18';
         document.getElementById('seats-13c-2').textContent = '18 seats · empty';
@@ -507,8 +538,6 @@
       el.className = 'eta-big green'; el.textContent = 'NOW';
       setTimeout(() => {
         el.className = 'eta-big blue'; eta04l = 19; el.textContent = '19';
-        document.getElementById('seats-04l').textContent = '18 seats';
-        document.getElementById('seats-04l').className = 'rpill rp-seats-green';
         document.getElementById('eta-04l-2').textContent = '28';
         document.getElementById('seats-04l-2').textContent = '18 seats · empty';
         clearInterval(iv04l);
@@ -536,16 +565,7 @@
     }
   }, 1000);
 
-  // ── Live demand updates ──
-  let waitCount = 2;
-  setInterval(() => {
-    if (Math.random() > 0.5 && waitCount < 12) {
-      waitCount++;
-      document.getElementById('wait-13c').textContent = waitCount + ' waiting';
-      document.getElementById('demand-count').textContent = waitCount;
-      document.getElementById('demand-plural').textContent = waitCount !== 1 ? 's' : '';
-    }
-  }, 8000);
+  sync.subscribe(applySharedState);
 </script>
 </body>
 </html>

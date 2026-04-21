@@ -280,6 +280,7 @@ body{background:var(--dk);color:var(--wh);font-family:'DM Sans',sans-serif;font-
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="tapsakay-sync.js"></script>
 <script>
 const ROUTES = [
   {code:'13C',name:'Talamban → Colon',sub:'Talamban · Banilad · JY Square · Ayala · IT Park · Colon'},
@@ -329,8 +330,9 @@ const STOPS_BY_ROUTE = {
   ]
 };
 
+const sync = window.TapSakaySync;
 let curRoute = ROUTES[0];
-let seats = 9;
+let seats = sync.getState().routes[curRoute.code]?.seats ?? 9;
 const MAX = 18;
 
 function getStops(code){return STOPS_BY_ROUTE[code]||STOPS_BY_ROUTE['default'];}
@@ -345,6 +347,12 @@ function demandLabel(tier,wait){
   return '';
 }
 
+function getRouteDemand(routeCode, stopName, fallbackWait){
+  const state = sync.getState();
+  if(stopName==='JY Square' && state.routes[routeCode]) return state.routes[routeCode].waiting;
+  return fallbackWait;
+}
+
 function renderStops(){
   const stops=getStops(curRoute.code);
   document.getElementById('stops-list').innerHTML=stops.map((s,i)=>`
@@ -355,16 +363,16 @@ function renderStops(){
           <div class="stop-addr">${s.addr}</div>
         </div>
         <div class="dbadge ${badgeClass(s.tier)}">
-          <div class="dnum" id="d${i}">${s.wait}</div>
+          <div class="dnum" id="d${i}">${getRouteDemand(curRoute.code,s.name,s.wait)}</div>
           <div class="dunit">waiting</div>
         </div>
       </div>
       <div class="stop-btm">
-        ${demandLabel(s.tier,s.wait)}
+        ${demandLabel(s.tier,getRouteDemand(curRoute.code,s.name,s.wait))}
         <span class="spill sp-dst">${s.addr.split('·')[1]?.trim()||''}</span>
         <span class="spill sp-eta">${s.eta}</span>
         <span class="spill sp-fare">${s.fare} base</span>
-        <button class="gobtn" onclick="goStop('${s.name}')">GO →</button>
+        <button class="gobtn" onclick="${s.name==='JY Square' ? `boardStop('${s.name}')` : `goStop('${s.name}')`}">${s.name==='JY Square' ? 'BOARD →' : 'GO →'}</button>
       </div>
     </div>
   `).join('');
@@ -372,6 +380,7 @@ function renderStops(){
 
 function setRoute(r){
   curRoute=r;
+  seats = sync.getState().routes[r.code]?.seats ?? seats;
   document.getElementById('cur-route-badge').textContent=r.code;
   document.getElementById('cur-route-name').textContent=r.name;
   document.getElementById('cur-route-stops').textContent=r.sub;
@@ -383,6 +392,8 @@ function setRoute(r){
   updateDriverUI();
   updateDriversHeader();
   
+  updateSeatUI();
+  sync.setRouteSeats(r.code, seats);
   updateBcast();
   renderStops();
   closeRoutePicker();
@@ -411,20 +422,30 @@ function refreshDemand(){
   const stops=getStops(curRoute.code);
   stops.forEach((s,i)=>{
     const el=document.getElementById('d'+i);
-    if(el)el.textContent=Math.max(0,s.wait+Math.floor(Math.random()*3)-1);
+    if(!el) return;
+    if(s.name==='JY Square'){
+      el.textContent=getRouteDemand(curRoute.code,s.name,s.wait);
+      return;
+    }
+    el.textContent=Math.max(0,s.wait+Math.floor(Math.random()*3)-1);
   });
   showToast('Demand refreshed ✓');
 }
 
 function goStop(n){showToast('Routing to '+n+'…');}
 
-function chgSeat(d){
-  seats=Math.max(0,Math.min(MAX,seats+d));
+function updateSeatUI(){
   document.getElementById('seat-num').textContent=seats;
   document.getElementById('seat-disp').textContent=seats;
   const c=seats<=3?'var(--red)':seats<=7?'var(--am)':'var(--grn)';
   document.getElementById('seat-num').style.color=c;
   document.getElementById('seat-disp').style.color=c;
+}
+
+function chgSeat(d){
+  seats=Math.max(0,Math.min(MAX,seats+d));
+  updateSeatUI();
+  sync.setRouteSeats(curRoute.code, seats);
   updateBcast();
   showToast('Seat count updated — displays synced ✓');
 }
@@ -432,6 +453,28 @@ function chgSeat(d){
 function updateBcast(){
   document.getElementById('bcast').textContent=
     'Broadcasting: '+curRoute.code+' · '+seats+' seat'+(seats!==1?'s':'')+' available';
+}
+
+function boardStop(stopName){
+  const result = sync.boardRoute(curRoute.code, stopName);
+  renderStops();
+  if(result.boarded > 0){
+    showToast('Boarded '+result.boarded+' commuter'+(result.boarded!==1?'s':'')+' at '+stopName);
+  }else if(result.capacity === 0){
+    showToast('No open seats available at '+stopName);
+  }else{
+    showToast('No commuters waiting at '+stopName);
+  }
+}
+
+function applySharedState(state){
+  const routeState = state.routes[curRoute.code];
+  if(routeState){
+    seats = routeState.seats;
+    updateSeatUI();
+    updateBcast();
+  }
+  renderStops();
 }
 
 function showToast(m){
@@ -619,6 +662,9 @@ document.addEventListener('click',e=>{
 });
 
 filterRoutes();
+updateSeatUI();
+sync.setRouteSeats(curRoute.code, seats);
+sync.subscribe(applySharedState);
 renderStops();
 updateDriverUI();
 updateDriversHeader();

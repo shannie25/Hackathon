@@ -356,8 +356,8 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
           <div class="jeep-info">
             <div class="jeep-dest">Talamban → Colon</div>
             <div class="jeep-meta">
-              <span class="tag t-green">14 seats</span>
-              <span class="tag t-gray">0 waiting</span>
+              <span class="tag t-green" id="seats-13c-2">14 seats</span>
+              <span class="tag t-gray" id="wait-13c-2">0 waiting</span>
               <span class="tag t-amber">₱17 base</span>
               <span class="tag t-blue">More room</span>
             </div>
@@ -379,8 +379,8 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
           <div class="jeep-info">
             <div class="jeep-dest">Lahug → Carbon</div>
             <div class="jeep-meta">
-              <span class="tag t-green">6 seats</span>
-              <span class="tag t-gray">1 waiting</span>
+              <span class="tag t-green" id="seats-04b-1">6 seats</span>
+              <span class="tag t-gray" id="wait-04b-1">1 waiting</span>
               <span class="tag t-amber">₱17 base</span>
             </div>
           </div>
@@ -405,8 +405,8 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
           <div class="jeep-info">
             <div class="jeep-dest">Lahug → Carbon</div>
             <div class="jeep-meta">
-              <span class="tag t-green">18 seats</span>
-              <span class="tag t-gray">0 waiting</span>
+              <span class="tag t-green" id="seats-04b-2">18 seats</span>
+              <span class="tag t-gray" id="wait-04b-2">0 waiting</span>
               <span class="tag t-amber">₱17 base</span>
               <span class="tag t-blue">Nearly empty</span>
             </div>
@@ -428,8 +428,8 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
           <div class="jeep-info">
             <div class="jeep-dest">Lahug → Ayala</div>
             <div class="jeep-meta">
-              <span class="tag t-red">3 seats left</span>
-              <span class="tag t-gray">4 waiting</span>
+              <span class="tag t-red" id="seats-04l-1">3 seats left</span>
+              <span class="tag t-gray" id="wait-04l-1">4 waiting</span>
               <span class="tag t-amber">₱17 base</span>
             </div>
           </div>
@@ -450,8 +450,8 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
           <div class="jeep-info">
             <div class="jeep-dest">Pit-os → Carbon</div>
             <div class="jeep-meta">
-              <span class="tag t-green">11 seats</span>
-              <span class="tag t-gray">0 waiting</span>
+              <span class="tag t-green" id="seats-62b-1">11 seats</span>
+              <span class="tag t-gray" id="wait-62b-1">0 waiting</span>
               <span class="tag t-amber">₱17 base</span>
             </div>
           </div>
@@ -555,7 +555,7 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
         </div>
         <div class="done-word">Wait Registered!</div>
         <div class="done-sub" id="done-sub">Driver notified · 13C is on the way</div>
-        <div class="done-badge">Arriving in <span id="eta-inline">3</span> mins · ₱73 saved vs Grab</div>
+        <div class="done-badge" id="done-badge">Arriving in <span id="eta-inline">3</span> mins · ₱73 saved vs Grab</div>
       </div>
     </div>
   </div>
@@ -594,18 +594,101 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
 
 </div>
 
+<script src="tapsakay-sync.js"></script>
 <script>
+  const sync = window.TapSakaySync;
   const ROUTES = {
-    '13c-1': { code:'13C', dest:'Talamban → Colon', eta:3,  label:'13C #1 → Colon' },
-    '13c-2': { code:'13C', dest:'Talamban → Colon', eta:9,  label:'13C #2 → Colon (more room)' },
-    '04b-1': { code:'04B', dest:'Lahug → Carbon',   eta:7,  label:'04B #1 → Carbon' },
-    '04b-2': { code:'04B', dest:'Lahug → Carbon',   eta:15, label:'04B #2 → Carbon' },
-    '04l-1': { code:'04L', dest:'Lahug → Ayala',    eta:12, label:'04L → Ayala' },
-    '62b-1': { code:'62B', dest:'Pit-os → Carbon',  eta:18, label:'62B → Carbon' },
+    '13c-1': { code:'13C', dest:'Talamban → Colon', eta:3,  label:'13C #1 → Colon', seatsId:'seats-13c-1', waitId:'wait-13c-1', seatStyle:'green' },
+    '13c-2': { code:'13C', dest:'Talamban → Colon', eta:9,  label:'13C #2 → Colon (more room)', seatsId:'seats-13c-2', waitId:'wait-13c-2', seatStyle:'green' },
+    '04b-1': { code:'04B', dest:'Lahug → Carbon',   eta:7,  label:'04B #1 → Carbon', seatsId:'seats-04b-1', waitId:'wait-04b-1', seatStyle:'green' },
+    '04b-2': { code:'04B', dest:'Lahug → Carbon',   eta:15, label:'04B #2 → Carbon', seatsId:'seats-04b-2', waitId:'wait-04b-2', seatStyle:'green' },
+    '04l-1': { code:'04L', dest:'Lahug → Ayala',    eta:12, label:'04L → Ayala', seatsId:'seats-04l-1', waitId:'wait-04l-1', seatStyle:'red' },
+    '62b-1': { code:'62B', dest:'Pit-os → Carbon',  eta:18, label:'62B → Carbon', seatsId:'seats-62b-1', waitId:'wait-62b-1', seatStyle:'green' },
   };
 
   let selectedKey = '13c-1';
   let tapped = false;
+
+  function formatSeatText(count, style) {
+    if (style === 'red') return count + (count === 1 ? ' seat left' : ' seats left');
+    return count + (count === 1 ? ' seat' : ' seats');
+  }
+
+  function getCurrentEta(key) {
+    if (key === '13c-1') return eta13c1 === 0 ? 0 : eta13c1;
+    if (key === '13c-2') return eta13c2 === 0 ? 0 : eta13c2;
+    return ROUTES[key]?.eta || 0;
+  }
+
+  function updateSelectedCopy() {
+    const route = ROUTES[selectedKey];
+    if (!route) return;
+    document.querySelectorAll('.jeep-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('card-' + selectedKey);
+    if (card) card.classList.add('selected');
+    document.getElementById('tap-for-label').textContent = 'Waiting for ' + route.label;
+    document.getElementById('queue-route').textContent = route.label;
+    const etaText = getCurrentEta(selectedKey);
+    document.getElementById('eta-inline').textContent = etaText === 0 ? 'NOW' : etaText;
+  }
+
+  function updateTapStatus(commuterState) {
+    const z = document.getElementById('tapZone');
+    const yi = document.getElementById('you-icon');
+    const youLbl = document.getElementById('you-lbl');
+    const doneSub = document.getElementById('done-sub');
+    const doneBadge = document.getElementById('done-badge');
+
+    tapped = commuterState.status !== 'idle';
+    z.classList.toggle('tapped', tapped);
+
+    if (commuterState.status === 'waiting') {
+      yi.classList.add('you');
+      yi.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#16A34A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#16A34A" stroke-width="1.2" stroke-linecap="round"/></svg>';
+      youLbl.style.display = 'inline';
+      doneSub.textContent = 'Driver notified · ' + commuterState.routeCode + ' is on the way';
+      doneBadge.innerHTML = 'Arriving in <span id="eta-inline">' + (getCurrentEta(selectedKey) || 'NOW') + '</span> mins · ₱73 saved vs Grab';
+    } else if (commuterState.status === 'boarded') {
+      yi.classList.add('you');
+      yi.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#16A34A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#16A34A" stroke-width="1.2" stroke-linecap="round"/></svg>';
+      youLbl.style.display = 'inline';
+      doneSub.textContent = 'You boarded at ' + (commuterState.boardedAt || 'JY Square') + ' · Enjoy the ride';
+      doneBadge.textContent = 'Waiting cleared · Seat secured';
+    } else {
+      yi.classList.remove('you');
+      yi.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#C7C7CC"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#C7C7CC" stroke-width="1.2" stroke-linecap="round"/></svg>';
+      youLbl.style.display = 'none';
+      doneSub.textContent = 'Driver notified · ' + ROUTES[selectedKey].code + ' is on the way';
+      doneBadge.innerHTML = 'Arriving in <span id="eta-inline">' + (getCurrentEta(selectedKey) || 'NOW') + '</span> mins · ₱73 saved vs Grab';
+    }
+  }
+
+  function applySharedState(state) {
+    Object.keys(ROUTES).forEach((key) => {
+      const route = ROUTES[key];
+      const data = state.routes[route.code];
+      const waitEl = document.getElementById(route.waitId);
+      const seatEl = document.getElementById(route.seatsId);
+
+      if (waitEl && data) waitEl.textContent = data.waiting + ' waiting';
+      if (seatEl && data) seatEl.textContent = formatSeatText(data.seats, route.seatStyle);
+    });
+
+    if (state.commuter.selectedKey && ROUTES[state.commuter.selectedKey]) {
+      selectedKey = state.commuter.selectedKey;
+    }
+
+    updateSelectedCopy();
+    updateTapStatus(state.commuter);
+
+    const selectedRoute = ROUTES[selectedKey];
+    const selectedRouteState = state.routes[selectedRoute.code];
+    document.getElementById('queue-count').textContent = (selectedRouteState?.waiting || 0) + ' waiting';
+    if (document.getElementById('eta-inline')) {
+      const etaValue = getCurrentEta(selectedKey);
+      document.getElementById('eta-inline').textContent = etaValue === 0 ? 'NOW' : etaValue;
+    }
+  }
 
   // ETA countdown for 13C #1
   let eta13c1 = 3;
@@ -624,9 +707,8 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
     } else {
       etaEl.textContent = eta13c1;
     }
-    if (selectedKey === '13c-1') {
-      const il = document.getElementById('eta-inline');
-      if (il) il.textContent = Math.max(0, eta13c1);
+    if (selectedKey === '13c-1' && document.getElementById('eta-inline')) {
+      document.getElementById('eta-inline').textContent = eta13c1 === 0 ? 'NOW' : eta13c1;
     }
   }, 1000);
 
@@ -636,20 +718,17 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
     eta13c2 = Math.max(0, eta13c2 - 1);
     const el = document.getElementById('eta-13c-2');
     if (el) el.textContent = eta13c2 === 0 ? 'NOW' : eta13c2;
+    if (selectedKey === '13c-2' && document.getElementById('eta-inline')) {
+      document.getElementById('eta-inline').textContent = eta13c2 === 0 ? 'NOW' : eta13c2;
+    }
   }, 1000);
 
   function selectRoute(code, dest, etaMins, fare, key) {
-    if (tapped) return;
+    const state = sync.getState();
+    if (state.commuter.status === 'waiting') return;
     selectedKey = key;
-    document.querySelectorAll('.jeep-card').forEach(c => c.classList.remove('selected'));
-    document.getElementById('card-' + key).classList.add('selected');
-    const r = ROUTES[key];
-    document.getElementById('tap-for-label').textContent = 'Waiting for ' + r.label;
-    document.getElementById('queue-route').textContent = r.label;
-    document.getElementById('done-sub').textContent = 'Driver notified · ' + code + ' is on the way';
-    const currentEta = key === '13c-1' ? eta13c1 : (key === '13c-2' ? eta13c2 : etaMins);
-    const il = document.getElementById('eta-inline');
-    if (il) il.textContent = currentEta;
+    sync.selectCommuterRoute({ key, code, label: ROUTES[key].label });
+    applySharedState(sync.getState());
   }
 
   function handleTap(e) {
@@ -661,17 +740,20 @@ html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-fa
     rpl.style.cssText = `width:${sz}px;height:${sz}px;left:${(e.clientX||r.left+r.width/2)-r.left-sz/2}px;top:${(e.clientY||r.top+r.height/2)-r.top-sz/2}px`;
     z.appendChild(rpl);
     setTimeout(() => rpl.remove(), 700);
-    if (tapped) return;
-    tapped = true;
-    z.classList.add('tapped');
-    const yi = document.getElementById('you-icon');
-    yi.classList.add('you');
-    yi.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#16A34A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#16A34A" stroke-width="1.2" stroke-linecap="round"/></svg>';
-    document.getElementById('you-lbl').style.display = 'inline';
-    document.getElementById('queue-count').textContent = '3 waiting';
-    const waitEl = document.querySelector('#card-' + selectedKey + ' .t-gray');
-    if (waitEl) waitEl.textContent = (parseInt(waitEl.textContent) + 1) + ' waiting';
+
+    const route = ROUTES[selectedKey];
+    const state = sync.getState();
+    if (state.commuter.status === 'waiting') return;
+
+    sync.registerCommuter({
+      key: selectedKey,
+      code: route.code,
+      label: route.label
+    });
   }
+
+  sync.subscribe(applySharedState);
+  updateSelectedCopy();
 </script>
 </body>
 </html>
