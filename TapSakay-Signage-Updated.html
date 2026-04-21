@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TapSakay – Smart Signage · JY Square</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Base overrides for signage ── */
+    :root {
+      --amber: #F59E00;
+      --amber-border: #FBBF24;
+      --amber-light: #FFF4DC;
+      --black: #111;
+      --white: #fff;
+      --green: #16A34A;
+      --green-light: #DCFCE7;
+      --green-border: #86EFAC;
+      --red: #DC2626;
+      --red-light: #FEE2E2;
+      --blue: #2563EB;
+      --blue-light: #EFF6FF;
+      --ink: #1C1C1E;
+      --ink2: #3A3A3C;
+      --gray: #8E8E93;
+      --gray-light: #E5E5EA;
+      --bg: #0F172A;
+      --surface: #1E293B;
+      --surface-2: rgba(15, 23, 42, 0.88);
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.14);
+      --shell-pad: clamp(28px, 4vw, 56px);
+      --section-gap: clamp(14px, 2vh, 24px);
+      --shadow-soft: 0 20px 50px rgba(0,0,0,0.22);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--white); overflow-x: hidden; overflow-y: auto; }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,0.15), transparent 30%),
+        radial-gradient(circle at top right, rgba(245,158,0,0.12), transparent 26%),
+        linear-gradient(180deg, #09111f 0%, #0F172A 100%);
+    }
+    .signage {
+      display: flex; flex-direction: column; min-height: 100vh; width: 100%;
+      margin: 0; position: relative; overflow: visible;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
+        linear-gradient(180deg, #101a30 0%, #0f172a 100%);
+    }
+    .signage::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(245,158,0,0.08), transparent 24%),
+        radial-gradient(circle at 88% 12%, rgba(96,165,250,0.08), transparent 20%);
+      pointer-events: none;
+    }
+
+    /* HEADER */
+    .header {
+      position: relative; z-index: 1;
+      background: rgba(30,41,59,0.88);
+      border-bottom: 1px solid var(--border);
+      padding: clamp(22px, 3vh, 30px) var(--shell-pad);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: inset 0 -1px 0 rgba(255,255,255,0.03);
+    }
+    .location { display: flex; align-items: center; gap: 16px; }
+    .pin-icon {
+      width: 68px; height: 68px; border-radius: 50%; background: var(--amber);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      box-shadow: 0 10px 24px rgba(245,158,0,0.22);
+    }
+    .stop-name-hdr { font-family: 'Bebas Neue', sans-serif; font-size: clamp(44px, 4vw, 64px); letter-spacing: 2px; color: var(--white); line-height: 0.95; }
+    .stop-sub-hdr { font-size: clamp(16px, 1.2vw, 20px); color: rgba(255,255,255,0.52); letter-spacing: 0.8px; margin-top: 6px; }
+    .time-block { text-align: right; }
+    .time { font-family: 'Bebas Neue', sans-serif; font-size: clamp(54px, 4.5vw, 76px); color: var(--amber); line-height: 0.95; }
+    .time-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 6px; }
+
+    /* LOGO ROW */
+    .logo-row {
+      position: relative; z-index: 1;
+      background: rgba(10,15,27,0.32);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 16px var(--shell-pad);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+      backdrop-filter: blur(10px);
+    }
+    .logo-row > div:first-child {
+      flex: 1;
+      text-align: center;
+    }
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: clamp(34px, 2.6vw, 44px); letter-spacing: 3px; line-height: 1; }
+    .logo .tap { color: var(--amber); }
+    .logo .sakay { color: var(--white); }
+    .logo-tagline { font-size: 13px; color: rgba(255,255,255,0.42); letter-spacing: 1.8px; text-transform: uppercase; margin-top: 4px; }
+    .live-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.28);
+      border-radius: 999px; padding: 9px 18px;
+      font-size: 14px; font-weight: 700; color: #4ADE80; letter-spacing: 1px;
+    }
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; animation: pu 1.5s infinite; }
+    @keyframes pu { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* MAIN CONTENT */
+    .main-container {
+      position: relative; z-index: 1;
+      flex: 1; display: flex; flex-direction: column;
+      padding: clamp(22px, 3vh, 34px) var(--shell-pad);
+      gap: var(--section-gap);
+      overflow: visible;
+    }
+
+    /* ROUTE ROWS */
+    .routes-label {
+      font-size: 13px; font-weight: 700; letter-spacing: 2.8px; text-transform: uppercase;
+      color: rgba(255,255,255,0.42);
+    }
+    .route-row {
+      background: linear-gradient(180deg, rgba(36, 49, 73, 0.96), rgba(30, 41, 59, 0.96));
+      border: 1px solid var(--border-strong);
+      border-radius: 24px; padding: clamp(22px, 3vh, 30px) clamp(24px, 2vw, 34px);
+      display: flex; align-items: center; gap: 20px;
+      min-height: clamp(126px, 18vh, 174px);
+      transition: border-color .3s, transform .25s ease, box-shadow .25s ease;
+      box-shadow: var(--shadow-soft);
+    }
+    .route-row.high { border-color: rgba(245,158,0,0.45); }
+    .route-row.medium { border-color: rgba(59,130,246,0.4); }
+
+    .route-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 4vw, 64px); letter-spacing: 2px;
+      width: clamp(112px, 10vw, 142px); height: clamp(84px, 10vh, 118px); border-radius: 18px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .rn-amber { background: var(--amber); color: var(--black); }
+    .rn-blue { background: #1D4ED8; color: var(--white); }
+
+    .route-info { flex: 1; min-width: 0; }
+    .route-dest { font-size: clamp(30px, 2.8vw, 44px); font-weight: 700; color: var(--white); margin-bottom: 10px; line-height: 1.05; }
+    .route-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .rpill {
+      font-size: clamp(14px, 1vw, 16px); font-weight: 600; padding: 7px 14px; border-radius: 999px; letter-spacing: .2px;
+    }
+    .rp-seats-green { background: rgba(74,222,128,0.12); border: 1px solid rgba(74,222,128,0.25); color: #4ADE80; }
+    .rp-seats-amber { background: rgba(245,158,0,0.12); border: 1px solid rgba(245,158,0,0.3); color: var(--amber); }
+    .rp-seats-red { background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.3); color: #F87171; }
+    .rp-wait { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); }
+    .rp-fare { background: rgba(245,158,0,0.1); color: #FCD34D; }
+
+    .eta-block { text-align: right; flex-shrink: 0; min-width: clamp(132px, 12vw, 180px); }
+    .eta-big { font-family: 'Bebas Neue', sans-serif; font-size: clamp(92px, 8vw, 128px); line-height: 0.9; color: var(--amber); }
+    .eta-big.blue { color: #60A5FA; }
+    .eta-big.green { color: #4ADE80; font-size: clamp(48px, 4vw, 64px); }
+    .eta-unit-lbl { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-top: 4px; }
+
+    /* NEXT JEEP CONNECTOR + ROW */
+    .next-jeep-connector {
+      display: flex; align-items: center; gap: 8px;
+      padding: 2px 0 2px 28px; flex-shrink: 0;
+    }
+    .nj-dots { display: flex; gap: 5px; align-items: center; }
+    .nj-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.18); }
+    .nj-label { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.28); letter-spacing: 1.2px; text-transform: uppercase; }
+
+    .next-jeep-row {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 16px 22px;
+      display: flex; align-items: center; gap: 16px;
+      min-height: clamp(84px, 11vh, 112px);
+      flex-shrink: 0;
+    }
+    .next-jeep-row.amber-dim { border-color: rgba(245,158,0,0.18); }
+    .next-jeep-row.blue-dim  { border-color: rgba(59,130,246,0.18); }
+
+    .nj-badge {
+      font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px;
+      width: 66px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nj-amber { background: rgba(245,158,0,0.12); color: rgba(245,158,0,0.7); border: 1px solid rgba(245,158,0,0.2); }
+    .nj-blue  { background: rgba(59,130,246,0.1);  color: rgba(96,165,250,0.7);  border: 1px solid rgba(59,130,246,0.18); }
+
+    .nj-info { flex: 1; min-width: 0; }
+    .nj-title { font-size: 22px; font-weight: 600; color: rgba(255,255,255,0.62); }
+    .nj-meta { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+    .nj-pill { font-size: 14px; font-weight: 600; padding: 5px 11px; border-radius: 999px; }
+    .nj-p-seats { background: rgba(74,222,128,0.07); color: rgba(74,222,128,0.6); }
+    .nj-p-empty { background: rgba(74,222,128,0.07); color: rgba(74,222,128,0.6); }
+    .nj-p-dist  { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.35); }
+
+    .nj-eta { text-align: right; flex-shrink: 0; min-width: 96px; }
+    .nj-eta-num { font-family: 'Bebas Neue', sans-serif; font-size: clamp(46px, 3.8vw, 68px); line-height: 0.95; color: rgba(255,255,255,0.42); }
+    .nj-eta-lbl { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.24); }
+
+    /* DEMAND BAR */
+    .demand-bar {
+      background: rgba(30,41,59,0.78); border: 1px solid var(--border);
+      border-radius: 18px; padding: 16px 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-soft);
+    }
+    .demand-text { font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.68); }
+    .demand-text strong { color: var(--amber); }
+
+    /* FOOTER / TAP CTA */
+    .footer {
+      background: var(--amber);
+      position: relative; z-index: 1;
+      padding: 0; flex-shrink: 0;
+      display: flex; align-items: stretch;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.18);
+    }
+    .tap-zone-signage {
+      flex: 1; padding: clamp(18px, 2.4vh, 26px) var(--shell-pad);
+      display: flex; align-items: center; gap: 20px;
+    }
+    .tap-nfc-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(0,0,0,0.15); border: 2px solid rgba(0,0,0,0.2);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      animation: tapPulse 2s ease-in-out infinite;
+    }
+    @keyframes tapPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+    .tap-cta-text { flex: 1; }
+    .tap-cta-main { font-family: 'Bebas Neue', sans-serif; font-size: clamp(38px, 3vw, 52px); letter-spacing: 2px; color: var(--black); line-height: 1; }
+    .tap-cta-sub { font-size: clamp(18px, 1.3vw, 22px); color: rgba(0,0,0,0.58); font-weight: 500; margin-top: 6px; }
+    .qr-block { text-align: center; flex-shrink: 0; }
+    .qr-placeholder {
+      width: 120px; height: 120px; background: var(--white); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 6px;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+      overflow: hidden;
+      text-decoration: none;
+    }
+    .qr-placeholder canvas,
+    .qr-placeholder img {
+      width: 100px;
+      height: 100px;
+      display: block;
+    }
+    .qr-label { font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.54); letter-spacing: 1.2px; text-transform: uppercase; }
+
+    @media (max-width: 1100px) {
+      .header { padding: 18px 24px; }
+      .logo-row, .main-container, .tap-zone-signage { padding-left: 24px; padding-right: 24px; }
+      .route-dest { font-size: 28px; }
+      .eta-big { font-size: 88px; }
+      .tap-cta-main { font-size: 36px; }
+      .tap-cta-sub { font-size: 16px; }
+    }
+
+    @media (max-width: 780px) {
+      html, body { overflow-x: hidden; overflow-y: auto; }
+      .header, .logo-row, .route-row, .next-jeep-row, .demand-bar, .tap-zone-signage { flex-wrap: wrap; }
+      .header, .logo-row { gap: 14px; }
+      .time-block, .eta-block, .nj-eta, .qr-block { width: 100%; text-align: left; }
+      .route-row { min-height: auto; }
+      .route-num { width: 92px; height: 72px; font-size: 42px; }
+      .route-dest { font-size: 24px; }
+      .eta-big { font-size: 72px; }
+      .nj-title { font-size: 18px; }
+      .tap-nfc-icon { width: 58px; height: 58px; }
+      .qr-block { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="signage">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="location">
+      <div class="pin-icon">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M9 1C6.24 1 4 3.24 4 6c0 4 5 11 5 11s5-7 5-11c0-2.76-2.24-5-5-5zm0 6.5a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="#111"/>
+        </svg>
+      </div>
+      <div>
+        <div class="stop-name-hdr">JY Square</div>
+        <div class="stop-sub-hdr">Lahug · Gorordo corridor · Cebu City</div>
+      </div>
+    </div>
+    <div class="time-block">
+      <div class="time" id="timeDisplay">--:-- --</div>
+      <div class="time-label">Smart Signage</div>
+    </div>
+  </div>
+
+  <!-- LOGO ROW -->
+  <div class="logo-row">
+    <div>
+      <div class="logo"><span class="tap">TAP</span><span class="sakay">SAKAY</span></div>
+      <div class="logo-tagline">NFC-based demand signaling · Cebu City</div>
+    </div>
+    <div class="live-pill"><span class="live-dot"></span>Live</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-container">
+    <div class="routes-label">Upcoming jeepneys at this stop</div>
+
+    <!-- 13C ROW — Talamban → Colon -->
+    <div class="route-row high">
+      <div class="route-num rn-amber">13C</div>
+      <div class="route-info">
+        <div class="route-dest">Talamban → Colon</div>
+        <div class="route-meta">
+          <span class="rpill rp-seats-green" id="seats-13c">9 seats available</span>
+          <span class="rpill rp-wait" id="wait-13c">2 waiting</span>
+          <span class="rpill rp-fare">₱17 base</span>
+        </div>
+      </div>
+      <div class="eta-block">
+        <div class="eta-big" id="eta-13c">3</div>
+        <div class="eta-unit-lbl" id="etalbl-13c">mins away</div>
+      </div>
+    </div>
+
+    <!-- 13C #2 NEXT JEEP -->
+    <div class="next-jeep-connector">
+      <div class="nj-dots"><div class="nj-dot"></div><div class="nj-dot"></div><div class="nj-dot"></div></div>
+      <div class="nj-label">another 13C coming behind ↓</div>
+    </div>
+    <div class="next-jeep-row amber-dim">
+      <div class="nj-badge nj-amber">13C</div>
+      <div class="nj-info">
+        <div class="nj-title">Talamban → Colon &nbsp;<span style="font-size:10px;opacity:.5;">#2</span></div>
+        <div class="nj-meta">
+          <span class="nj-pill nj-p-empty" id="seats-13c-2">14 seats · nearly empty</span>
+          <span class="nj-pill nj-p-dist" id="dist-13c-2">~2.1 km behind</span>
+        </div>
+      </div>
+      <div class="nj-eta">
+        <div class="nj-eta-num" id="eta-13c-2">9</div>
+        <div class="nj-eta-lbl" id="etalbl-13c-2">mins away</div>
+      </div>
+    </div>
+
+    <!-- 04L ROW — Lahug → Ayala -->
+    <div class="route-row medium">
+      <div class="route-num rn-blue">04L</div>
+      <div class="route-info">
+        <div class="route-dest">Lahug → Ayala</div>
+        <div class="route-meta">
+          <span class="rpill rp-seats-amber" id="seats-04l">3 seats left</span>
+          <span class="rpill rp-wait" id="wait-04l">4 waiting</span>
+          <span class="rpill rp-fare">₱17 base</span>
+        </div>
+      </div>
+      <div class="eta-block">
+        <div class="eta-big blue" id="eta-04l">12</div>
+        <div class="eta-unit-lbl">mins away</div>
+      </div>
+    </div>
+
+    <!-- 04L #2 NEXT JEEP -->
+    <div class="next-jeep-connector">
+      <div class="nj-dots"><div class="nj-dot"></div><div class="nj-dot"></div><div class="nj-dot"></div></div>
+      <div class="nj-label">another 04L coming behind ↓</div>
+    </div>
+    <div class="next-jeep-row blue-dim">
+      <div class="nj-badge nj-blue">04L</div>
+      <div class="nj-info">
+        <div class="nj-title">Lahug → Ayala &nbsp;<span style="font-size:10px;opacity:.5;">#2</span></div>
+        <div class="nj-meta">
+          <span class="nj-pill nj-p-empty" id="seats-04l-2">18 seats · empty</span>
+          <span class="nj-pill nj-p-dist" id="dist-04l-2">~3.4 km behind</span>
+        </div>
+      </div>
+      <div class="nj-eta">
+        <div class="nj-eta-num" id="eta-04l-2">19</div>
+        <div class="nj-eta-lbl" id="etalbl-04l-2">mins away</div>
+      </div>
+    </div>
+
+    <!-- DEMAND BAR -->
+    <div class="demand-bar">
+      <div class="demand-text" id="demand-footer">
+        <strong id="demand-count">2</strong> commuter<span id="demand-plural">s</span> waiting at JY Square for <strong>13C</strong>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:.5px;">Updated live</div>
+    </div>
+  </div>
+
+  <!-- FOOTER / TAP CTA -->
+  <div class="footer">
+    <div class="tap-zone-signage">
+      <div class="tap-nfc-icon">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <rect x="4" y="4" width="18" height="18" rx="4" fill="rgba(0,0,0,0.2)"/>
+          <path d="M8 13l4 4 6-6" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="tap-cta-text">
+        <div class="tap-cta-main">TAP YOUR PHONE HERE</div>
+        <div class="tap-cta-sub">NFC tap or scan QR · Opens instantly · No app needed</div>
+      </div>
+      <div class="qr-block">
+        <a class="qr-placeholder" id="qrLink" href="TapSakay-Commuter.html" aria-label="Open TapSakay commuter page"></a>
+        <div class="qr-label">Scan QR</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+  const COMMUTER_URL = new URL('TapSakay-Commuter.html', window.location.href).href;
+  const qrLink = document.getElementById('qrLink');
+
+  if (qrLink) {
+    qrLink.href = COMMUTER_URL;
+    qrLink.title = COMMUTER_URL;
+    qrLink.innerHTML = '';
+
+    if (window.QRCode) {
+      new QRCode(qrLink, {
+        text: COMMUTER_URL,
+        width: 74,
+        height: 74,
+        colorDark: '#111111',
+        colorLight: '#FFFFFF',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    } else {
+      qrLink.textContent = 'QR';
+      qrLink.style.color = '#111';
+      qrLink.style.fontFamily = "'Bebas Neue', sans-serif";
+      qrLink.style.fontSize = '28px';
+      qrLink.style.letterSpacing = '1px';
+    }
+  }
+
+</script>
+<script>
+  // Clock
+  function updateTime() {
+    const now = new Date();
+    let h = now.getHours(), m = now.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('timeDisplay').textContent = h + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
+
+  // ── 13C #1 countdown ──
+  let eta13c = 3;
+  const iv13c = setInterval(() => {
+    eta13c = Math.max(0, eta13c - 1);
+    const el = document.getElementById('eta-13c');
+    const lbl = document.getElementById('etalbl-13c');
+    if (eta13c === 0) {
+      el.className = 'eta-big green'; el.textContent = 'NOW'; lbl.textContent = 'Arriving';
+      // After 8s, reset — simulates jeep arriving and next one becomes #1
+      setTimeout(() => {
+        el.className = 'eta-big'; eta13c = 9; el.textContent = '9'; lbl.textContent = 'mins away';
+        document.getElementById('seats-13c').textContent = '14 seats available';
+        document.getElementById('seats-13c').className = 'rpill rp-seats-green';
+        // #2 becomes a new jeep further back
+        document.getElementById('eta-13c-2').textContent = '18';
+        document.getElementById('seats-13c-2').textContent = '18 seats · empty';
+        document.getElementById('dist-13c-2').textContent = '~4.2 km behind';
+        clearInterval(iv13c);
+      }, 8000);
+      clearInterval(iv13c);
+    } else {
+      el.textContent = eta13c;
+    }
+  }, 1000);
+
+  // ── 13C #2 countdown ──
+  let eta13c2 = 9;
+  const iv13c2 = setInterval(() => {
+    eta13c2 = Math.max(0, eta13c2 - 1);
+    const el = document.getElementById('eta-13c-2');
+    const lbl = document.getElementById('etalbl-13c-2');
+    const dist = document.getElementById('dist-13c-2');
+    if (eta13c2 === 0) {
+      el.textContent = 'NOW'; lbl.textContent = 'Next up';
+      clearInterval(iv13c2);
+    } else {
+      el.textContent = eta13c2;
+      // Shrink the distance label as it gets closer
+      const km = (eta13c2 * 0.23).toFixed(1);
+      dist.textContent = '~' + km + ' km behind';
+    }
+  }, 1000);
+
+  // ── 04L #1 countdown ──
+  let eta04l = 12;
+  const iv04l = setInterval(() => {
+    eta04l = Math.max(0, eta04l - 1);
+    const el = document.getElementById('eta-04l');
+    if (eta04l === 0) {
+      el.className = 'eta-big green'; el.textContent = 'NOW';
+      setTimeout(() => {
+        el.className = 'eta-big blue'; eta04l = 19; el.textContent = '19';
+        document.getElementById('seats-04l').textContent = '18 seats';
+        document.getElementById('seats-04l').className = 'rpill rp-seats-green';
+        document.getElementById('eta-04l-2').textContent = '28';
+        document.getElementById('seats-04l-2').textContent = '18 seats · empty';
+        clearInterval(iv04l);
+      }, 8000);
+      clearInterval(iv04l);
+    } else {
+      el.textContent = eta04l;
+    }
+  }, 1000);
+
+  // ── 04L #2 countdown ──
+  let eta04l2 = 19;
+  const iv04l2 = setInterval(() => {
+    eta04l2 = Math.max(0, eta04l2 - 1);
+    const el = document.getElementById('eta-04l-2');
+    const lbl = document.getElementById('etalbl-04l-2');
+    const dist = document.getElementById('dist-04l-2');
+    if (eta04l2 === 0) {
+      el.textContent = 'NOW'; lbl.textContent = 'Next up';
+      clearInterval(iv04l2);
+    } else {
+      el.textContent = eta04l2;
+      const km = (eta04l2 * 0.18).toFixed(1);
+      dist.textContent = '~' + km + ' km behind';
+    }
+  }, 1000);
+
+  // ── Live demand updates ──
+  let waitCount = 2;
+  setInterval(() => {
+    if (Math.random() > 0.5 && waitCount < 12) {
+      waitCount++;
+      document.getElementById('wait-13c').textContent = waitCount + ' waiting';
+      document.getElementById('demand-count').textContent = waitCount;
+      document.getElementById('demand-plural').textContent = waitCount !== 1 ? 's' : '';
+    }
+  }, 8000);
+</script>
+</body>
+</html>
