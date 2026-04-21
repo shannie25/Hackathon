@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TapSakay — Commuter</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --amber: #F59E00;
+  --amber-light: #FFF4DC;
+  --amber-mid: #FFE299;
+  --amber-border: #FBBF24;
+  --black: #111111;
+  --ink: #1C1C1E;
+  --ink2: #3A3A3C;
+  --gray: #8E8E93;
+  --gray-light: #E5E5EA;
+  --bg: #F5F5F7;
+  --white: #FFFFFF;
+  --green: #16A34A;
+  --green-light: #DCFCE7;
+  --green-border: #86EFAC;
+  --red: #DC2626;
+  --red-light: #FEE2E2;
+  --blue: #2563EB;
+  --blue-light: #EFF6FF;
+  --purple: #7C3AED;
+  --purple-light: #F5F3FF;
+  --purple-border: #C4B5FD;
+  --teal: #0D9488;
+  --teal-light: #F0FDFA;
+  --teal-border: #99F6E4;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100%; background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; overflow-x: hidden; }
+.app { max-width: 430px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
+
+/* HEADER */
+.header {
+  background: var(--white); padding: 18px 20px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1.5px solid var(--gray-light);
+  position: sticky; top: 0; z-index: 10;
+}
+.logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; line-height: 1; }
+.logo .tap { color: var(--amber); }
+.logo .sakay { color: var(--ink); }
+.logo-sub { font-size: 10px; color: var(--gray); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+.online-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green-light); border: 1px solid var(--green-border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 11px; font-weight: 600; color: var(--green); letter-spacing: .3px;
+}
+.online-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* FARE NOTICE */
+.fare-notice {
+  background: var(--blue-light); border-bottom: 1.5px solid #BFDBFE;
+  padding: 9px 16px; display: flex; align-items: flex-start; gap: 8px;
+}
+.fare-notice-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.fare-notice-text { font-size: 11px; color: var(--blue); font-weight: 500; line-height: 1.5; }
+.fare-notice-text strong { font-weight: 700; }
+
+/* STOP BANNER */
+.stop-banner {
+  background: var(--amber); padding: 18px 20px 16px;
+  position: relative; overflow: hidden;
+}
+.stop-banner::after {
+  content: ''; position: absolute; right: -24px; top: -24px;
+  width: 110px; height: 110px; border-radius: 50%; background: rgba(255,255,255,0.2);
+}
+.stop-eye { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(0,0,0,0.45); margin-bottom: 2px; }
+.stop-name { font-family: 'Bebas Neue', sans-serif; font-size: 44px; letter-spacing: 1px; line-height: 1; color: var(--black); }
+.stop-sub { font-size: 13px; color: rgba(0,0,0,0.5); margin-top: 3px; font-weight: 500; }
+
+/* SECTION LABEL */
+.sec-wrap { padding: 14px 16px 6px; }
+.sec-label { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; justify-content: space-between; }
+.live-tag { display: flex; align-items: center; gap: 4px; color: var(--green); font-weight: 600; font-size: 10px; letter-spacing: 1px; }
+.live-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+.sec-hint { font-size: 11px; color: var(--gray); margin-top: 4px; font-weight: 400; }
+
+/* ARRIVALS */
+.arrivals-section { padding: 0 16px 8px; }
+
+.route-group { margin-bottom: 14px; }
+.route-group-label {
+  font-size: 10px; font-weight: 700; color: var(--gray);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  padding: 0 2px 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.route-group-label::after { content: ''; flex: 1; height: 1px; background: var(--gray-light); }
+
+.jeep-stack { display: flex; flex-direction: column; gap: 6px; }
+
+.jeep-card {
+  background: var(--white); border: 1.5px solid var(--gray-light);
+  border-radius: 16px; padding: 13px 15px;
+  display: flex; align-items: center; gap: 12px;
+  animation: cardIn .35s cubic-bezier(.22,1,.36,1) both;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  cursor: pointer; transition: border-color .2s, box-shadow .2s;
+  position: relative;
+}
+.jeep-card:active { transform: scale(.985); }
+.jeep-card.prime { border-color: var(--amber-border); box-shadow: 0 2px 12px rgba(245,158,0,0.12); }
+.jeep-card.selected { border-color: var(--amber-border); background: #FFFDF5; }
+.jeep-card.second-jeep { border-style: dashed; border-color: var(--gray-light); background: #FAFAFA; opacity: 0.9; }
+.jeep-card.second-jeep.prime-second { border-color: rgba(245,158,0,0.45); border-style: dashed; }
+@keyframes cardIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.jeep-card:nth-child(1) { animation-delay: .04s; }
+.jeep-card:nth-child(2) { animation-delay: .10s; }
+
+.behind-dot-row { display: flex; align-items: center; gap: 5px; padding: 1px 0 1px 52px; margin-bottom: 2px; }
+.behind-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gray-light); }
+.behind-label { font-size: 10px; color: var(--gray); font-weight: 600; letter-spacing: 0.3px; background: var(--gray-light); border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
+
+.route-badge {
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1.5px;
+  width: 48px; height: 48px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.rb-amber { background: var(--amber-light); color: var(--amber); border: 1.5px solid var(--amber-border); }
+.rb-amber-solid { background: var(--amber); color: var(--black); border: 1.5px solid var(--amber); }
+.rb-blue { background: var(--blue-light); color: var(--blue); border: 1.5px solid #93C5FD; }
+.rb-purple { background: var(--purple-light); color: var(--purple); border: 1.5px solid var(--purple-border); }
+.rb-teal { background: var(--teal-light); color: var(--teal); border: 1.5px solid var(--teal-border); }
+.rb-green { background: var(--green-light); color: var(--green); border: 1.5px solid var(--green-border); }
+
+.second-jeep .route-badge { width: 42px; height: 42px; font-size: 17px; opacity: 0.8; }
+.second-badge-wrap { position: relative; flex-shrink: 0; }
+.second-label-bubble {
+  position: absolute; top: -7px; right: -7px;
+  background: var(--ink2); color: #fff;
+  font-size: 7px; font-weight: 700; letter-spacing: 0.5px;
+  border-radius: 20px; padding: 1px 5px; white-space: nowrap;
+}
+
+.jeep-info { flex: 1; min-width: 0; }
+.jeep-dest { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jeep-meta { display: flex; gap: 5px; align-items: center; margin-top: 5px; flex-wrap: wrap; }
+.tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: .3px; }
+.t-green { background: var(--green-light); color: var(--green); }
+.t-gray { background: var(--gray-light); color: var(--ink2); }
+.t-amber { background: var(--amber-light); color: #92600A; }
+.t-red { background: var(--red-light); color: var(--red); }
+.t-blue { background: var(--blue-light); color: var(--blue); }
+
+.pbar { height: 3px; background: var(--gray-light); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.pbar-fill { height: 100%; border-radius: 2px; transition: width 1s linear; }
+.pbar-amber .pbar-fill { background: var(--amber); }
+.pbar-green .pbar-fill { background: var(--green); }
+
+.eta-col { text-align: right; flex-shrink: 0; min-width: 54px; }
+.eta-num { font-family: 'Bebas Neue', sans-serif; font-size: 38px; line-height: 1; color: var(--amber); }
+.eta-num.gray { color: var(--gray); }
+.eta-num.green { color: var(--green); font-size: 22px; }
+.eta-unit { font-size: 9px; color: var(--gray); letter-spacing: 1px; margin-top: 1px; text-transform: uppercase; }
+.second-jeep .eta-num { font-size: 30px; color: var(--gray); }
+
+/* NOT STOPPING NOTE */
+.not-stopping {
+  margin: 4px 0 12px; padding: 10px 14px;
+  background: var(--white); border: 1.5px solid var(--gray-light);
+  border-radius: 12px;
+}
+.not-stopping-lbl { font-size: 10px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.not-stopping p { font-size: 11px; color: var(--gray); line-height: 1.6; }
+.not-stopping strong { color: var(--ink2); }
+
+/* COMMON DESTINATIONS */
+.destinations-section { padding: 0 16px 14px; }
+.dest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.dest-card {
+  background: var(--white); border: 1.5px solid var(--gray-light);
+  border-radius: 12px; padding: 10px 12px;
+  cursor: pointer; transition: border-color .15s;
+}
+.dest-card:active { border-color: var(--amber-border); background: var(--amber-light); transform: scale(.97); }
+.dest-name { font-size: 12px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+.dest-routes { font-size: 10px; color: var(--gray); }
+.dest-fare { font-size: 10px; font-weight: 600; color: #92600A; margin-top: 2px; }
+
+/* QUEUE */
+.queue-section { padding: 0 16px 10px; }
+.queue-card {
+  background: var(--white); border: 1.5px solid var(--gray-light);
+  border-radius: 14px; padding: 12px 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.queue-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.queue-lbl { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; }
+.queue-count { font-size: 11px; font-weight: 600; color: var(--ink2); }
+.queue-row { display: flex; gap: 6px; align-items: center; }
+.picon {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--gray-light); border: 1.5px solid #D1D1D6;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .3s cubic-bezier(.22,1,.36,1); flex-shrink: 0;
+}
+.picon.on { background: var(--amber-light); border-color: var(--amber-border); }
+.picon.you { background: var(--green-light); border-color: var(--green-border); }
+.you-lbl { font-size: 11px; font-weight: 600; color: var(--green); margin-left: 4px; display: none; }
+
+/* DIVIDER */
+.divider { height: 1.5px; background: var(--gray-light); margin: 4px 16px 14px; }
+
+/* TAP ZONE */
+.tap-section { padding: 0 16px 16px; flex: 1; display: flex; flex-direction: column; }
+.tap-label { font-size: 11px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+.tap-zone {
+  flex: 1; min-height: 180px;
+  background: var(--amber); border-radius: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; position: relative; overflow: hidden;
+  transition: transform .14s cubic-bezier(.22,1,.36,1), background .3s;
+  box-shadow: 0 4px 20px rgba(245,158,0,0.3);
+}
+.tap-zone:active { transform: scale(.97); }
+.tap-zone.tapped { background: var(--green); box-shadow: 0 4px 20px rgba(22,163,74,0.3); }
+.ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.3); transform: scale(0); animation: rpl .65s linear forwards; pointer-events: none; }
+@keyframes rpl { to { transform: scale(5); opacity: 0; } }
+
+.tap-idle { display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.tap-ring {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: rgba(0,0,0,0.1); border: 2px solid rgba(0,0,0,0.15);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  transition: transform .2s;
+}
+.tap-zone:active .tap-ring { transform: scale(.88); }
+.tap-word { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 3px; color: var(--black); }
+.tap-hint { font-size: 13px; color: rgba(0,0,0,0.5); margin-top: 4px; font-weight: 500; }
+.tap-for { margin-top: 12px; background: rgba(0,0,0,0.1); border-radius: 20px; padding: 5px 16px; font-size: 12px; font-weight: 600; color: rgba(0,0,0,0.6); letter-spacing: .3px; }
+
+.tap-done { display: none; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.chk-ring { width: 66px; height: 66px; border-radius: 50%; border: 2.5px solid rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; animation: pop .4s cubic-bezier(.22,1,.36,1); }
+@keyframes pop { from{transform:scale(.4);opacity:0} to{transform:scale(1);opacity:1} }
+.done-word { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 2px; color: var(--black); }
+.done-sub { font-size: 13px; color: rgba(0,0,0,0.55); margin-top: 4px; font-weight: 500; text-align: center; }
+.done-badge { margin-top: 12px; background: rgba(0,0,0,0.12); border-radius: 20px; padding: 5px 16px; font-size: 13px; font-weight: 700; color: var(--black); }
+.tap-zone.tapped .tap-idle { display: none; }
+.tap-zone.tapped .tap-done { display: flex; }
+
+/* SAVINGS BAR */
+.savings-bar {
+  margin: 0 16px 12px;
+  background: var(--white); border: 1.5px solid var(--gray-light);
+  border-radius: 16px; padding: 18px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.sav-item { text-align: center; flex: 1; }
+.sav-lbl { font-size: 10px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+.sav-val { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: .5px; line-height: 1; }
+.sav-note { font-size: 10px; color: var(--gray); margin-top: 5px; }
+.sv-red { color: var(--red); text-decoration: line-through; }
+.sv-amber { color: var(--amber); }
+.sv-green { color: var(--green); }
+.sav-vl { width: 1.5px; height: 50px; background: var(--gray-light); flex-shrink: 0; }
+
+/* FARE TABLE MINI */
+.fare-mini {
+  margin: 0 16px 20px;
+  background: var(--white); border: 1.5px solid var(--gray-light);
+  border-radius: 12px; overflow: hidden;
+}
+.fare-mini-title {
+  background: var(--amber-light); border-bottom: 1.5px solid var(--amber-border);
+  padding: 8px 14px; font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+  color: #92600A; text-transform: uppercase;
+}
+.fare-mini-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  padding: 7px 14px; font-size: 11px;
+  border-bottom: 1px solid var(--gray-light); color: var(--ink2);
+}
+.fare-mini-row:last-child { border-bottom: none; }
+.fare-mini-row.head { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-transform: uppercase; background: #FAFAFA; }
+.fare-mini-row span:last-child { font-weight: 600; color: var(--amber); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div>
+      <div class="logo"><span class="tap">TAP</span><span class="sakay">SAKAY</span></div>
+      <div class="logo-sub">Cebu Transit · Real-time</div>
+    </div>
+    <div class="online-badge">Online</div>
+  </div>
+
+  <div class="fare-notice">
+    <div class="fare-notice-icon">ℹ️</div>
+    <div class="fare-notice-text">
+      <strong>Updated fares effective March 19, 2026.</strong> Modern Jeep: ₱17 base (first 4km), +₱2.40/km after. Traditional: ₱14 base, +₱2.00/km after.
+    </div>
+  </div>
+
+  <div class="stop-banner">
+    <div class="stop-eye">You are at</div>
+    <div class="stop-name">JY Square</div>
+    <div class="stop-sub">Lahug · Gorordo corridor · Cebu City</div>
+  </div>
+
+  <div class="sec-wrap">
+    <div class="sec-label">
+      Routes passing this stop
+      <span class="live-tag">Live</span>
+    </div>
+    <div class="sec-hint">Only routes that stop at JY Square are shown · Multiple jeeps per route when available</div>
+  </div>
+
+  <div class="arrivals-section">
+
+    <!-- 13C GROUP -->
+    <div class="route-group">
+      <div class="route-group-label">13C · Talamban → Colon</div>
+      <div class="jeep-stack">
+        <div class="jeep-card prime" id="card-13c-1" onclick="selectRoute('13C','Talamban → Colon',3,'₱17','13c-1')">
+          <div class="route-badge rb-amber-solid">13C</div>
+          <div class="jeep-info">
+            <div class="jeep-dest">Talamban → Colon</div>
+            <div class="jeep-meta">
+              <span class="tag t-green" id="seats-13c-1">9 seats</span>
+              <span class="tag t-gray" id="wait-13c-1">2 waiting</span>
+              <span class="tag t-amber">₱17 base</span>
+            </div>
+            <div class="pbar pbar-amber"><div class="pbar-fill" id="pbar-13c-1" style="width:70%"></div></div>
+          </div>
+          <div class="eta-col">
+            <div class="eta-num" id="eta-13c-1">3</div>
+            <div class="eta-unit" id="etalbl-13c-1">mins away</div>
+          </div>
+        </div>
+
+        <div class="behind-dot-row">
+          <div class="behind-dot"></div>
+          <div class="behind-dot"></div>
+          <div class="behind-dot"></div>
+          <div class="behind-label">another 13C behind ↓</div>
+        </div>
+
+        <div class="jeep-card second-jeep prime-second" id="card-13c-2" onclick="selectRoute('13C','Talamban → Colon',9,'₱17','13c-2')">
+          <div class="second-badge-wrap">
+            <div class="route-badge rb-amber">13C</div>
+            <div class="second-label-bubble">#2</div>
+          </div>
+          <div class="jeep-info">
+            <div class="jeep-dest">Talamban → Colon</div>
+            <div class="jeep-meta">
+              <span class="tag t-green">14 seats</span>
+              <span class="tag t-gray">0 waiting</span>
+              <span class="tag t-amber">₱17 base</span>
+              <span class="tag t-blue">More room</span>
+            </div>
+          </div>
+          <div class="eta-col">
+            <div class="eta-num gray" id="eta-13c-2">9</div>
+            <div class="eta-unit">mins away</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04B GROUP -->
+    <div class="route-group">
+      <div class="route-group-label">04B · Lahug → Carbon</div>
+      <div class="jeep-stack">
+        <div class="jeep-card" id="card-04b-1" onclick="selectRoute('04B','Lahug → Carbon',7,'₱17','04b-1')">
+          <div class="route-badge rb-blue">04B</div>
+          <div class="jeep-info">
+            <div class="jeep-dest">Lahug → Carbon</div>
+            <div class="jeep-meta">
+              <span class="tag t-green">6 seats</span>
+              <span class="tag t-gray">1 waiting</span>
+              <span class="tag t-amber">₱17 base</span>
+            </div>
+          </div>
+          <div class="eta-col">
+            <div class="eta-num gray">7</div>
+            <div class="eta-unit">mins away</div>
+          </div>
+        </div>
+
+        <div class="behind-dot-row">
+          <div class="behind-dot"></div>
+          <div class="behind-dot"></div>
+          <div class="behind-dot"></div>
+          <div class="behind-label">another 04B behind ↓</div>
+        </div>
+
+        <div class="jeep-card second-jeep" id="card-04b-2" onclick="selectRoute('04B','Lahug → Carbon',15,'₱17','04b-2')">
+          <div class="second-badge-wrap">
+            <div class="route-badge rb-blue">04B</div>
+            <div class="second-label-bubble">#2</div>
+          </div>
+          <div class="jeep-info">
+            <div class="jeep-dest">Lahug → Carbon</div>
+            <div class="jeep-meta">
+              <span class="tag t-green">18 seats</span>
+              <span class="tag t-gray">0 waiting</span>
+              <span class="tag t-amber">₱17 base</span>
+              <span class="tag t-blue">Nearly empty</span>
+            </div>
+          </div>
+          <div class="eta-col">
+            <div class="eta-num gray">15</div>
+            <div class="eta-unit">mins away</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04L GROUP -->
+    <div class="route-group">
+      <div class="route-group-label">04L · Lahug → Ayala</div>
+      <div class="jeep-stack">
+        <div class="jeep-card" id="card-04l-1" onclick="selectRoute('04L','Lahug → Ayala',12,'₱17','04l-1')">
+          <div class="route-badge rb-purple">04L</div>
+          <div class="jeep-info">
+            <div class="jeep-dest">Lahug → Ayala</div>
+            <div class="jeep-meta">
+              <span class="tag t-red">3 seats left</span>
+              <span class="tag t-gray">4 waiting</span>
+              <span class="tag t-amber">₱17 base</span>
+            </div>
+          </div>
+          <div class="eta-col">
+            <div class="eta-num gray">12</div>
+            <div class="eta-unit">mins away</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 62B GROUP -->
+    <div class="route-group">
+      <div class="route-group-label">62B · Pit-os → Carbon</div>
+      <div class="jeep-stack">
+        <div class="jeep-card" id="card-62b-1" onclick="selectRoute('62B','Pit-os → Carbon',18,'₱17','62b-1')">
+          <div class="route-badge rb-teal">62B</div>
+          <div class="jeep-info">
+            <div class="jeep-dest">Pit-os → Carbon</div>
+            <div class="jeep-meta">
+              <span class="tag t-green">11 seats</span>
+              <span class="tag t-gray">0 waiting</span>
+              <span class="tag t-amber">₱17 base</span>
+            </div>
+          </div>
+          <div class="eta-col">
+            <div class="eta-num gray">18</div>
+            <div class="eta-unit">mins away</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROUTES NOT STOPPING HERE -->
+    <div class="not-stopping">
+      <div class="not-stopping-lbl">Routes NOT stopping here</div>
+      <p><strong>01K</strong> (Urgello–Parkmall) · <strong>10M</strong> (Bulacao–SM) · <strong>42D</strong> — these routes do not pass JY Square.</p>
+    </div>
+
+  </div>
+
+  <!-- COMMON DESTINATIONS -->
+  <div class="destinations-section">
+    <div class="sec-label">Common destinations from JY Square</div>
+    <div class="dest-grid">
+      <div class="dest-card">
+        <div class="dest-name">Ayala Center Cebu</div>
+        <div class="dest-routes">via 13C, 04L</div>
+        <div class="dest-fare">₱17 · ~5 mins</div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-name">IT Park</div>
+        <div class="dest-routes">via 13C</div>
+        <div class="dest-fare">₱17 · ~8 mins</div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-name">Colon Street</div>
+        <div class="dest-routes">via 13C, 04B</div>
+        <div class="dest-fare">₱22 · ~20 mins</div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-name">Carbon Market</div>
+        <div class="dest-routes">via 04B, 62B</div>
+        <div class="dest-fare">₱22 · ~22 mins</div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-name">Lahug / UP Cebu</div>
+        <div class="dest-routes">via 04B, 04L</div>
+        <div class="dest-fare">₱17 · ~6 mins</div>
+      </div>
+      <div class="dest-card">
+        <div class="dest-name">Talamban</div>
+        <div class="dest-routes">via 13C, 62B</div>
+        <div class="dest-fare">₱17 · ~15 mins</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUEUE CARD -->
+  <div class="queue-section">
+    <div class="queue-card">
+      <div class="queue-top">
+        <div class="queue-lbl">Queue · <span id="queue-route">13C #1</span></div>
+        <div class="queue-count" id="queue-count">2 waiting</div>
+      </div>
+      <div class="queue-row">
+        <div class="picon on">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#92600A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#92600A" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="picon on">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#92600A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#92600A" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="picon" id="you-icon">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#C7C7CC"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#C7C7CC" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="picon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#EBEBEB"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#EBEBEB" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        <div class="picon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#EBEBEB"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#EBEBEB" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+        <div class="you-lbl" id="you-lbl">← You</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TAP ZONE -->
+  <div class="tap-section">
+    <div class="tap-label">Register your wait</div>
+    <div class="tap-zone" id="tapZone" onclick="handleTap(event)">
+      <div class="tap-idle">
+        <div class="tap-ring">
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+            <rect x="5" y="5" width="24" height="24" rx="6" fill="rgba(0,0,0,0.15)"/>
+            <path d="M11 17l4.5 4.5 8-8" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="tap-word">Tap to Register</div>
+        <div class="tap-hint">Tap here or scan NFC / QR</div>
+        <div class="tap-for" id="tap-for-label">Waiting for 13C #1 → Colon</div>
+      </div>
+      <div class="tap-done">
+        <div class="chk-ring">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M7 16l6 6 12-12" stroke="#111" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="done-word">Wait Registered!</div>
+        <div class="done-sub" id="done-sub">Driver notified · 13C is on the way</div>
+        <div class="done-badge">Arriving in <span id="eta-inline">3</span> mins · ₱73 saved vs Grab</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVINGS BAR
+  <div class="savings-bar">
+    <div class="sav-item">
+      <div class="sav-lbl">Grab / MoveIt</div>
+      <div class="sav-val sv-red">₱100</div>
+      <div class="sav-note">est. 8km trip</div>
+    </div>
+    <div class="sav-vl"></div>
+    <div class="sav-item">
+      <div class="sav-lbl">Jeep fare</div>
+      <div class="sav-val sv-amber">₱26.60</div>
+      <div class="sav-note">8km modern jeep</div>
+    </div>
+    <div class="sav-vl"></div>
+    <div class="sav-item">
+      <div class="sav-lbl">You save</div>
+      <div class="sav-val sv-green">₱73</div>
+      <div class="sav-note">vs ride-hailing</div>
+    </div>
+  </div>  -->
+
+  <!-- FARE TABLE -->
+  <div class="fare-mini">
+    <div class="fare-mini-title">₱ LTFRB FARE GUIDE · March 19, 2026</div>
+    <div class="fare-mini-row head"><span>Distance</span><span>Traditional</span><span>Modern Jeep</span></div>
+    <div class="fare-mini-row"><span>4 km</span><span>₱14.00</span><span>₱17.00</span></div>
+    <div class="fare-mini-row"><span>5 km</span><span>₱16.00</span><span>₱19.40</span></div>
+    <div class="fare-mini-row"><span>6 km</span><span>₱18.00</span><span>₱21.80</span></div>
+    <div class="fare-mini-row"><span>8 km</span><span>₱22.00</span><span>₱26.60</span></div>
+    <div class="fare-mini-row"><span>10 km</span><span>₱26.00</span><span>₱31.40</span></div>
+  </div>
+
+</div>
+
+<script>
+  const ROUTES = {
+    '13c-1': { code:'13C', dest:'Talamban → Colon', eta:3,  label:'13C #1 → Colon' },
+    '13c-2': { code:'13C', dest:'Talamban → Colon', eta:9,  label:'13C #2 → Colon (more room)' },
+    '04b-1': { code:'04B', dest:'Lahug → Carbon',   eta:7,  label:'04B #1 → Carbon' },
+    '04b-2': { code:'04B', dest:'Lahug → Carbon',   eta:15, label:'04B #2 → Carbon' },
+    '04l-1': { code:'04L', dest:'Lahug → Ayala',    eta:12, label:'04L → Ayala' },
+    '62b-1': { code:'62B', dest:'Pit-os → Carbon',  eta:18, label:'62B → Carbon' },
+  };
+
+  let selectedKey = '13c-1';
+  let tapped = false;
+
+  // ETA countdown for 13C #1
+  let eta13c1 = 3;
+  const iv = setInterval(() => {
+    eta13c1 = Math.max(0, eta13c1 - 1);
+    const pct = 70 + (3 - eta13c1) * 10;
+    const pb = document.getElementById('pbar-13c-1');
+    if (pb) pb.style.width = Math.min(100, pct) + '%';
+    const etaEl = document.getElementById('eta-13c-1');
+    const lblEl = document.getElementById('etalbl-13c-1');
+    if (eta13c1 === 0) {
+      etaEl.className = 'eta-num green';
+      etaEl.textContent = 'NOW';
+      if (lblEl) lblEl.textContent = '';
+      clearInterval(iv);
+    } else {
+      etaEl.textContent = eta13c1;
+    }
+    if (selectedKey === '13c-1') {
+      const il = document.getElementById('eta-inline');
+      if (il) il.textContent = Math.max(0, eta13c1);
+    }
+  }, 1000);
+
+  // ETA countdown for 13C #2
+  let eta13c2 = 9;
+  const iv2 = setInterval(() => {
+    eta13c2 = Math.max(0, eta13c2 - 1);
+    const el = document.getElementById('eta-13c-2');
+    if (el) el.textContent = eta13c2 === 0 ? 'NOW' : eta13c2;
+  }, 1000);
+
+  function selectRoute(code, dest, etaMins, fare, key) {
+    if (tapped) return;
+    selectedKey = key;
+    document.querySelectorAll('.jeep-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('card-' + key).classList.add('selected');
+    const r = ROUTES[key];
+    document.getElementById('tap-for-label').textContent = 'Waiting for ' + r.label;
+    document.getElementById('queue-route').textContent = r.label;
+    document.getElementById('done-sub').textContent = 'Driver notified · ' + code + ' is on the way';
+    const currentEta = key === '13c-1' ? eta13c1 : (key === '13c-2' ? eta13c2 : etaMins);
+    const il = document.getElementById('eta-inline');
+    if (il) il.textContent = currentEta;
+  }
+
+  function handleTap(e) {
+    const z = document.getElementById('tapZone');
+    const r = z.getBoundingClientRect();
+    const rpl = document.createElement('div');
+    rpl.className = 'ripple';
+    const sz = Math.max(r.width, r.height) * 2.4;
+    rpl.style.cssText = `width:${sz}px;height:${sz}px;left:${(e.clientX||r.left+r.width/2)-r.left-sz/2}px;top:${(e.clientY||r.top+r.height/2)-r.top-sz/2}px`;
+    z.appendChild(rpl);
+    setTimeout(() => rpl.remove(), 700);
+    if (tapped) return;
+    tapped = true;
+    z.classList.add('tapped');
+    const yi = document.getElementById('you-icon');
+    yi.classList.add('you');
+    yi.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="4.5" r="2.5" fill="#16A34A"/><path d="M2 12c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="#16A34A" stroke-width="1.2" stroke-linecap="round"/></svg>';
+    document.getElementById('you-lbl').style.display = 'inline';
+    document.getElementById('queue-count').textContent = '3 waiting';
+    const waitEl = document.querySelector('#card-' + selectedKey + ' .t-gray');
+    if (waitEl) waitEl.textContent = (parseInt(waitEl.textContent) + 1) + ' waiting';
+  }
+</script>
+</body>
+</html>
