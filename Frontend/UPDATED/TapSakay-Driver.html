@@ -1,0 +1,625 @@
+
+<style>
+:root{--dk:#ffffff;--surf:#f8fafc;--surf2:#e2e8f0;--brd:rgba(0,0,0,0.1);--wh:#1e293b;--am:#F59E00;--grn:#4ADE80;--red:#F87171;--org:#F97316;--blu:#3B82F6;--muted:rgba(0,0,0,0.6);--muted2:rgba(0,0,0,0.3)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--dk);color:var(--wh);font-family:'DM Sans',system-ui,sans-serif;font-size:13px}
+.app{max-width:400px;margin:0 auto;padding-bottom:32px}
+.hdr{background:var(--surf);padding:12px 14px;border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:20}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.logo{font-size:20px;font-weight:800;letter-spacing:1px}.logo span:first-child{color:var(--am)}.logo span:last-child{color:var(--wh)}
+.logo-sub{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:1px}
+.gps{display:flex;align-items:center;gap:5px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:700;color:var(--grn)}
+.gps-dot{width:5px;height:5px;border-radius:50%;background:var(--grn);animation:pu 1.5s infinite}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.3}}
+.dcard{background:var(--surf2);border:1px solid var(--brd);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.dav{width:44px;height:44px;border-radius:50%;background:var(--am);color:#111;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0}
+.di{flex:1;min-width:0}
+.di-name{font-size:14px;font-weight:700}
+.di-route{font-size:18px;font-weight:800;color:var(--am);letter-spacing:.5px}
+.di-plate{font-size:10px;color:var(--muted)}
+.dst{text-align:right}
+.sbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.5px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);color:var(--grn)}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--grn)}
+.trips-lbl{font-size:10px;color:var(--muted);margin-top:3px}
+.trips-num{font-size:22px;font-weight:800;color:var(--wh)}
+
+.sec-lbl{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:12px 14px 6px;display:flex;align-items:center;justify-content:space-between}
+.rfbtn{font-size:9px;font-weight:700;color:var(--am);border:none;background:none;cursor:pointer;letter-spacing:.5px;text-transform:uppercase}
+
+.route-sel-wrap{padding:0 14px 8px}
+.route-sel-card{background:var(--surf2);border:1px solid rgba(245,158,0,0.2);border-radius:12px;padding:12px 14px}
+.rs-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rs-badge{font-size:26px;font-weight:800;background:var(--am);color:#111;width:58px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;letter-spacing:1px;flex-shrink:0}
+.rs-info{flex:1}
+.rs-fullname{font-size:13px;font-weight:700;color:var(--wh)}
+.rs-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.rs-change{font-size:10px;color:var(--am);cursor:pointer;text-decoration:underline;margin-top:4px;display:inline-block}
+.route-picker{display:none;position:absolute;left:14px;right:14px;background:var(--surf2);border:1px solid rgba(245,158,0,0.3);border-radius:10px;z-index:30;max-height:220px;overflow-y:auto}
+.route-picker.open{display:block}
+.rp-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:10px}
+.rp-item:last-child{border-bottom:none}
+.rp-item:hover{background:rgba(245,158,0,0.07)}
+.rp-code{font-size:12px;font-weight:800;color:var(--red);min-width:40px}
+.rp-name{font-size:11px;color:rgba(12, 10, 10, 0.75)} 
+.rp-search{width:100%;background:var(--surf);border:none;border-bottom:1px solid var(--brd);padding:10px 14px;color:black;font-size:12px;border-radius:10px 10px 0 0}
+.rp-search:focus{outline:none}
+
+.stops-list{padding:0 14px;display:flex;flex-direction:column;gap:8px}
+.scard{background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:12px 14px;cursor:pointer;position:relative;overflow:hidden;transition:border-color .2s}
+.scard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:12px 0 0 12px}
+.scard.tier-blue{border-color:rgba(59,130,246,0.4)}.scard.tier-blue::before{background:var(--blu)}
+.scard.tier-yel{border-color:rgba(245,158,0,0.35)}.scard.tier-yel::before{background:var(--am)}
+.scard.tier-pin{border-color:rgba(236,72,153,0.35)}.scard.tier-pin::before{background:#EC4899}
+.scard.tier-nxt{border-color:rgba(74,222,128,0.4);background:rgba(74,222,128,0.04)}.scard.tier-nxt::before{background:var(--grn)}
+.scard:active{transform:scale(.98)}
+.stop-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.stop-name{font-size:13px;font-weight:700;color:var(--wh)}
+.stop-addr{font-size:10px;color:var(--muted);margin-top:1px}
+.dbadge{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:50px;height:50px;border-radius:10px;flex-shrink:0}
+.dbadge.blue{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3)}
+.dbadge.yel{background:rgba(245,158,0,0.12);border:1px solid rgba(245,158,0,0.3)}
+.dbadge.pin{background:rgba(236,72,153,0.12);border:1px solid rgba(236,72,153,0.3)}
+.dbadge.nxt{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.25)}
+.dbadge.dim{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08)}
+.dnum{font-size:24px;font-weight:800;line-height:1}
+.dbadge.blue .dnum{color:var(--blu)}.dbadge.yel .dnum{color:var(--am)}.dbadge.pin .dnum{color:#EC4899}.dbadge.nxt .dnum{color:var(--grn)}.dbadge.dim .dnum{color:var(--muted)}
+.dunit{font-size:7px;letter-spacing:1px;text-transform:uppercase;opacity:.6}
+.stop-btm{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.spill{font-size:9px;font-weight:700;padding:3px 7px;border-radius:20px;letter-spacing:.3px}
+.sp-nxt{background:rgba(74,222,128,0.12);color:var(--grn)}
+.sp-hot{background:rgba(236,72,153,0.12);color:#EC4899}
+.sp-dst{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.55)}
+.sp-eta{background:rgba(74,222,128,0.1);color:var(--grn)}
+.sp-fare{background:rgba(245,158,0,0.1);color:#FCD34D}
+.sp-inf{background:rgba(168,85,247,0.12);color:#C084FC}
+.gobtn{margin-left:auto;background:var(--am);color:#111;font-size:14px;font-weight:800;padding:5px 14px;border-radius:20px;border:none;cursor:pointer;letter-spacing:.5px}
+
+.tier-legend{display:flex;gap:8px;flex-wrap:wrap;padding:4px 14px 8px}
+.tleg{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted)}
+.tleg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.seat-wrap{padding:0 14px 8px}
+.seat-card{background:var(--surf);border:1px solid var(--brd);border-radius:12px;padding:14px}
+.seat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.seat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+.seat-num-big{font-size:40px;font-weight:800;color:var(--grn);line-height:1}
+.seat-of{font-size:12px;color:var(--muted)}
+.seat-ctrl{display:flex;align-items:center;justify-content:center;gap:16px}
+.sbtn{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;border:none;cursor:pointer;transition:transform .1s}
+.sbtn:active{transform:scale(.88)}
+.sbtn.mn{background:rgba(248,113,113,0.12);color:var(--red);border:1.5px solid rgba(248,113,113,0.25)}
+.sbtn.pl{background:rgba(74,222,128,0.12);color:var(--grn);border:1.5px solid rgba(74,222,128,0.25)}
+.snum{font-size:52px;font-weight:800;color:var(--wh);min-width:72px;text-align:center;line-height:1}
+.seat-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:8px}
+.bcast{margin-top:10px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--grn);text-align:center}
+
+.earn-wrap{padding:0 14px 8px}
+.earn-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ecard{background:var(--surf);border:1px solid var(--brd);border-radius:10px;padding:10px;text-align:center}
+.elbl{font-size:8px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.eval{font-size:22px;font-weight:800;letter-spacing:.3px}
+.ev-g{color:var(--grn)}.ev-a{color:var(--am)}.ev-w{color:var(--wh)}
+
+.sep{height:1px;background:var(--brd);margin:6px 14px}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surf2);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:8px 18px;font-size:12px;font-weight:500;color:var(--wh);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;z-index:100}
+.toast.show{opacity:1}
+
+.drivers-wrap{padding:0 14px 8px}
+.drivers-card{background:var(--surf);border:1px solid var(--brd);border-radius:12px;overflow:hidden}
+.drivers-hdr{padding:10px 14px;border-bottom:1px solid var(--brd);font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.drivers-count{color:var(--grn)}
+.driver-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);cursor:pointer;transition:background .2s}
+.driver-item:last-child{border-bottom:none}
+.driver-item:active{background:rgba(255,255,255,0.03)}
+.driver-badge{font-size:12px;font-weight:800;width:35px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#111;flex-shrink:0}
+.driver-info{flex:1;min-width:0}
+.driver-name{font-size:12px;font-weight:700;color:var(--wh)}
+.driver-details{font-size:9px;color:var(--muted);margin-top:1px}
+.driver-seats{display:inline-block;padding:2px 6px;border-radius:12px;font-weight:600;margin:0 3px}
+.seats-many{background:rgba(74,222,128,0.15);color:var(--grn)}
+.seats-few{background:rgba(245,158,0,0.15);color:var(--am)}
+.seats-full{background:rgba(248,113,113,0.15);color:var(--red)}
+.driver-pos{font-size:9px;text-align:right;flex-shrink:0}
+.pos-ahead{color:var(--grn)}
+.pos-behind{color:var(--muted)}
+.pos-side{color:var(--am)}
+.pos-icon{font-weight:800;font-size:11px}
+</style>
+
+<div class="app" id="app">
+  <div class="hdr">
+    <div class="hdr-top">
+      <div>
+        <div class="logo"><span>TAP</span><span>SAKAY</span></div>
+        <div class="logo-sub" id="hdr-sub">Driver Dashboard · Route 13C</div>
+      </div>
+      <div class="gps"><span class="gps-dot"></span>GPS Active</div>
+    </div>
+    <div class="dcard">
+      <div class="dav" id="drv-init">RD</div>
+      <div class="di">
+        <div class="di-name" id="drv-name">Ramon Dela Cruz</div>
+        <div class="di-route" id="drv-route">13C — Talamban → Colon</div>
+        <div class="di-plate">Plate: CEB-1234 · Modern Jeep</div>
+      </div>
+      <div class="dst">
+        <div class="sbadge"><span class="sdot"></span>On Duty</div>
+        <div class="trips-lbl">Trips today</div>
+        <div class="trips-num" id="trip-count">7</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-lbl">My route <button class="rfbtn" onclick="toggleRoutePicker()">✎ Change route</button></div>
+  <div style="position:relative">
+    <div class="route-sel-wrap">
+      <div class="route-sel-card">
+        <div class="rs-top">
+          <div class="rs-badge" id="cur-route-badge">13C</div>
+          <div class="rs-info">
+            <div class="rs-fullname" id="cur-route-name">Talamban → Colon · via Banilad/Ayala</div>
+            <div class="rs-sub" id="cur-route-stops">Talamban · Banilad · JY Square · Ayala · IT Park · Colon</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="route-picker" id="route-picker">
+      <input class="rp-search" id="rp-search" placeholder="Search route…" oninput="filterRoutes()">
+      <div id="rp-list"></div>
+    </div>
+  </div>
+
+  <div class="sec-lbl">
+    Live demand — stops ahead
+    <button class="rfbtn" onclick="refreshDemand()">↻ Refresh</button>
+  </div>
+
+  <div class="tier-legend">
+    <div class="tleg"><div class="tleg-dot" style="background:#3B82F6"></div>Official stop (high)</div>
+    <div class="tleg"><div class="tleg-dot" style="background:#F59E00"></div>Known stop (med)</div>
+    <div class="tleg"><div class="tleg-dot" style="background:#EC4899"></div>Informal hail point</div>
+    <div class="tleg"><div class="tleg-dot" style="background:#4ADE80"></div>Next stop</div>
+  </div>
+
+  <div class="stops-list" id="stops-list"></div>
+
+  <div class="sep"></div>
+  <div class="sec-lbl">Available seats</div>
+  <div class="seat-wrap">
+    <div class="seat-card">
+      <div class="seat-top">
+        <div>
+          <div class="seat-lbl">Open seats right now</div>
+          <div><span class="seat-num-big" id="seat-disp">9</span><span class="seat-of"> / 18</span></div>
+        </div>
+        <div style="text-align:right">
+          <div class="seat-lbl">Capacity</div>
+          <div style="font-size:26px;font-weight:800;color:var(--muted)">18</div>
+        </div>
+      </div>
+      <div class="seat-ctrl">
+        <button class="sbtn mn" onclick="chgSeat(-1)">−</button>
+        <div class="snum" id="seat-num">9</div>
+        <button class="sbtn pl" onclick="chgSeat(1)">+</button>
+      </div>
+      <div class="seat-hint">Tap +/− to update · broadcasts to all commuter displays</div>
+      <div class="bcast" id="bcast">Broadcasting: 13C · 9 seats available</div>
+    </div>
+  </div>
+
+  <div class="sec-lbl">Today's shift</div>
+  <div class="earn-wrap">
+    <div class="earn-grid">
+      <div class="ecard"><div class="elbl">Earned</div><div class="eval ev-g" id="earn-val">₱623</div></div>
+      <div class="ecard"><div class="elbl">Trips</div><div class="eval ev-a" id="trips-val">7</div></div>
+      <div class="ecard"><div class="elbl">Passengers</div><div class="eval ev-w" id="pax-val">84</div></div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+  <div class="sec-lbl">Other drivers on route <button class="rfbtn" onclick="refreshDrivers()">↻ Refresh</button></div>
+  <div class="drivers-wrap">
+    <div class="drivers-card">
+      <div class="drivers-hdr">
+        <span>Drivers on Route 13C</span>
+        <span class="drivers-count" id="drivers-count">4 online</span>
+      </div>
+      <div id="drivers-list">
+        <div class="driver-item">
+          <div class="driver-badge" style="background:#3B82F6;">J</div>
+          <div class="driver-info">
+            <div class="driver-name">Jose Tan</div>
+            <div class="driver-details">Plate: CEB-4521 · <span class="driver-seats seats-many" id="d0-seats">12 seats</span></div>
+          </div>
+          <div class="driver-pos pos-ahead" id="d0-pos"><span class="pos-icon">↑</span> 1.2 km<br>ahead</div>
+        </div>
+        <div class="driver-item">
+          <div class="driver-badge" style="background:#F59E00;">D</div>
+          <div class="driver-info">
+            <div class="driver-name">Daniel Luz</div>
+            <div class="driver-details">Plate: CEB-5678 · <span class="driver-seats seats-many" id="d1-seats">8 seats</span></div>
+          </div>
+          <div class="driver-pos pos-side" id="d1-pos"><span class="pos-icon">↔</span> Same stop<br>next to you</div>
+        </div>
+        <div class="driver-item">
+          <div class="driver-badge" style="background:#7C3AED;">M</div>
+          <div class="driver-info">
+            <div class="driver-name">Maria Santos</div>
+            <div class="driver-details">Plate: CEB-7790 · <span class="driver-seats seats-few" id="d2-seats">5 seats</span></div>
+          </div>
+          <div class="driver-pos pos-behind" id="d2-pos"><span class="pos-icon">↓</span> 0.8 km<br>behind</div>
+        </div>
+        <div class="driver-item">
+          <div class="driver-badge" style="background:#059669;">P</div>
+          <div class="driver-info">
+            <div class="driver-name">Pedro Reyes</div>
+            <div class="driver-details">Plate: CEB-3301 · <span class="driver-seats seats-full" id="d3-seats">FULL</span></div>
+          </div>
+          <div class="driver-pos pos-behind" id="d3-pos"><span class="pos-icon">↓</span> 2.4 km<br>behind</div>
+        </div>
+        <div class="driver-item" id="driver-4" style="display:none;">
+          <div class="driver-badge" style="background:#EC4899;">A</div>
+          <div class="driver-info">
+            <div class="driver-name">Ana Cruz</div>
+            <div class="driver-details">Plate: CEB-8901 · <span class="driver-seats seats-many" id="d4-seats">15 seats</span></div>
+          </div>
+          <div class="driver-pos pos-ahead" id="d4-pos"><span class="pos-icon">↑</span> 0.9 km<br>ahead</div>
+        </div>
+        <div class="driver-item" id="driver-5" style="display:none;">
+          <div class="driver-badge" style="background:#8B5CF6;">B</div>
+          <div class="driver-info">
+            <div class="driver-name">Benito Reyes</div>
+            <div class="driver-details">Plate: CEB-2345 · <span class="driver-seats seats-many" id="d5-seats">7 seats</span></div>
+          </div>
+          <div class="driver-pos pos-behind" id="d5-pos"><span class="pos-icon">↓</span> 1.5 km<br>behind</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const ROUTES = [
+  {code:'13C',name:'Talamban → Colon',sub:'Talamban · Banilad · JY Square · Ayala · IT Park · Colon'},
+  {code:'13B',name:'Talamban → Carbon',sub:'Talamban · Banilad · JY Square · Carbon'},
+  {code:'13H',name:'Talamban → various',sub:'Talamban · Lahug · IT Park · Colon'},
+  {code:'04L',name:'Lahug → Carbon',sub:'Lahug · Gorordo · Ayala · Osmena Blvd · Carbon'},
+  {code:'04M',name:'Lahug → Ayala',sub:'Lahug · Gorordo Ave · JY Square · Ayala'},
+  {code:'03Q',name:'Ayala → SM City',sub:'Ayala · Fuente Osmena · SM City Cebu'},
+  {code:'06H',name:'Guadalupe → SM',sub:'Guadalupe · Capitol · SM City Cebu'},
+  {code:'14D',name:'Ayala → Colon',sub:'Ayala · Osmena Blvd · Colon'},
+  {code:'17B',name:'Apas → Carbon',sub:'Apas · Lahug · JY Square · Carbon'},
+  {code:'17C',name:'Apas → Carbon',sub:'Apas · Lahug · IT Park · Carbon'},
+  {code:'17D',name:'Apas → Carbon',sub:'Apas · UP Campus · Carbon'},
+  {code:'10F',name:'Bulacao → Colon',sub:'Bulacao · Pardo · Colon'},
+  {code:'10M',name:'Bulacao → SM',sub:'Bulacao · Labangon · SM City Cebu'},
+  {code:'12D',name:'Labangon → Colon',sub:'Labangon · Ermita · Colon'},
+  {code:'12L',name:'Labangon → Ayala',sub:'Labangon · Escario · Ayala'},
+  {code:'20A',name:'Ayala → Mandaue',sub:'Ayala · Osmena · Mandaue City Hall'},
+  {code:'62B',name:'Pit-os → Carbon',sub:'Pit-os · Talamban · JY Square · Carbon'},
+  {code:'09C',name:'Basak → Colon',sub:'Basak · Plaridel · Junquera · Colon'},
+  {code:'11A',name:'Inayawan → Colon',sub:'Inayawan · Colon · Manalili'},
+  {code:'08G',name:'Alumnos → Colon',sub:'Alumnos · Colon · Manalili'},
+  {code:'02B',name:'South Bus Terminal → Colon',sub:'CSBT · Talisay · Colon'},
+  {code:'01K',name:'Urgello → Parkmall',sub:'Urgello · SM · Mandaue · Parkmall'},
+];
+
+const STOPS_BY_ROUTE = {
+  '13C':[
+    {name:'JY Square',addr:'Lahug, Cebu City · 0.4 km',tier:'nxt',wait:3,eta:'~2 min',fare:'₱17',inf:false},
+    {name:'Ayala Center Cebu',addr:'Archbishop Reyes Ave · 1.8 km',tier:'blue',wait:8,eta:'~7 min',fare:'₱17',inf:false},
+    {name:'IT Park Gate',addr:'Salinas Dr, Lahug · 2.5 km',tier:'blue',wait:5,eta:'~9 min',fare:'₱17',inf:false},
+    {name:'Fuente Osmena',addr:'Osmena Blvd · 4.2 km',tier:'yel',wait:2,eta:'~14 min',fare:'₱19',inf:false},
+    {name:'Near Gaisano Main',addr:'Colon area · 5.8 km',tier:'pin',wait:3,eta:'~20 min',fare:'₱21',inf:true},
+    {name:'Colon Street Terminal',addr:'Downtown Cebu · 6.1 km',tier:'blue',wait:1,eta:'~22 min',fare:'₱22',inf:false},
+  ],
+  '04L':[
+    {name:'Gorordo Ave',addr:'Lahug · 0.5 km',tier:'nxt',wait:4,eta:'~2 min',fare:'₱17',inf:false},
+    {name:'JY Square',addr:'Banilad Rd · 1.2 km',tier:'blue',wait:6,eta:'~5 min',fare:'₱17',inf:false},
+    {name:'Osmena Blvd',addr:'Capitol Area · 3.5 km',tier:'yel',wait:2,eta:'~13 min',fare:'₱19',inf:false},
+    {name:'Carbon Market',addr:'Downtown · 5.5 km',tier:'blue',wait:1,eta:'~20 min',fare:'₱22',inf:false},
+  ],
+  'default':[
+    {name:'Next Major Stop',addr:'Along route · 0.8 km',tier:'nxt',wait:3,eta:'~3 min',fare:'₱17',inf:false},
+    {name:'Mid Route Stop',addr:'Along route · 2.5 km',tier:'yel',wait:4,eta:'~10 min',fare:'₱19',inf:false},
+    {name:'Informal Hail Zone',addr:'Near road junction · 3.2 km',tier:'pin',wait:2,eta:'~13 min',fare:'₱19',inf:true},
+    {name:'Terminal Stop',addr:'End of route · 5.0 km',tier:'blue',wait:1,eta:'~20 min',fare:'₱22',inf:false},
+  ]
+};
+
+let curRoute = ROUTES[0];
+let seats = 9;
+const MAX = 18;
+
+function getStops(code){return STOPS_BY_ROUTE[code]||STOPS_BY_ROUTE['default'];}
+
+function tierClass(t){return t==='nxt'?'tier-nxt':t==='blue'?'tier-blue':t==='yel'?'tier-yel':'tier-pin';}
+function badgeClass(t){return t==='nxt'?'nxt':t==='blue'?'blue':t==='yel'?'yel':t==='pin'?'pin':'dim';}
+
+function demandLabel(tier,wait){
+  if(tier==='nxt')return '<span class="spill sp-nxt">NEXT STOP</span>';
+  if(tier==='blue'&&wait>=6)return '<span class="spill sp-hot">HIGH DEMAND</span>';
+  if(tier==='pin')return '<span class="spill sp-inf">INFORMAL STOP</span>';
+  return '';
+}
+
+function renderStops(){
+  const stops=getStops(curRoute.code);
+  document.getElementById('stops-list').innerHTML=stops.map((s,i)=>`
+    <div class="scard ${tierClass(s.tier)}">
+      <div class="stop-top">
+        <div>
+          <div class="stop-name">${s.name}</div>
+          <div class="stop-addr">${s.addr}</div>
+        </div>
+        <div class="dbadge ${badgeClass(s.tier)}">
+          <div class="dnum" id="d${i}">${s.wait}</div>
+          <div class="dunit">waiting</div>
+        </div>
+      </div>
+      <div class="stop-btm">
+        ${demandLabel(s.tier,s.wait)}
+        <span class="spill sp-dst">${s.addr.split('·')[1]?.trim()||''}</span>
+        <span class="spill sp-eta">${s.eta}</span>
+        <span class="spill sp-fare">${s.fare} base</span>
+        <button class="gobtn" onclick="goStop('${s.name}')">GO →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setRoute(r){
+  curRoute=r;
+  document.getElementById('cur-route-badge').textContent=r.code;
+  document.getElementById('cur-route-name').textContent=r.name;
+  document.getElementById('cur-route-stops').textContent=r.sub;
+  document.getElementById('drv-route').textContent=r.code+' — '+r.name;
+  document.getElementById('hdr-sub').textContent='Driver Dashboard · Route '+r.code;
+  
+  // Update drivers for the new route
+  driversData = driversByRoute[r.code] || [];
+  updateDriverUI();
+  updateDriversHeader();
+  
+  updateBcast();
+  renderStops();
+  closeRoutePicker();
+  showToast('Route updated to '+r.code);
+}
+
+function toggleRoutePicker(){
+  const p=document.getElementById('route-picker');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')){filterRoutes();document.getElementById('rp-search').focus();}
+}
+function closeRoutePicker(){document.getElementById('route-picker').classList.remove('open');}
+
+function filterRoutes(){
+  const q=document.getElementById('rp-search').value.toLowerCase();
+  const list=ROUTES.filter(r=>r.code.toLowerCase().includes(q)||r.name.toLowerCase().includes(q));
+  document.getElementById('rp-list').innerHTML=list.map(r=>`
+    <div class="rp-item" onclick="setRoute(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+      <div class="rp-code">${r.code}</div>
+      <div class="rp-name">${r.name}</div>
+    </div>
+  `).join('');
+}
+
+function refreshDemand(){
+  const stops=getStops(curRoute.code);
+  stops.forEach((s,i)=>{
+    const el=document.getElementById('d'+i);
+    if(el)el.textContent=Math.max(0,s.wait+Math.floor(Math.random()*3)-1);
+  });
+  showToast('Demand refreshed ✓');
+}
+
+function goStop(n){showToast('Routing to '+n+'…');}
+
+function chgSeat(d){
+  seats=Math.max(0,Math.min(MAX,seats+d));
+  document.getElementById('seat-num').textContent=seats;
+  document.getElementById('seat-disp').textContent=seats;
+  const c=seats<=3?'var(--red)':seats<=7?'var(--am)':'var(--grn)';
+  document.getElementById('seat-num').style.color=c;
+  document.getElementById('seat-disp').style.color=c;
+  updateBcast();
+  showToast('Seat count updated — displays synced ✓');
+}
+
+function updateBcast(){
+  document.getElementById('bcast').textContent=
+    'Broadcasting: '+curRoute.code+' · '+seats+' seat'+(seats!==1?'s':'')+' available';
+}
+
+function showToast(m){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+let trips=7,earned=623,pax=84;
+setInterval(()=>{
+  trips++;earned+=Math.floor(Math.random()*40)+60;pax+=Math.floor(Math.random()*4)+2;
+  document.getElementById('trip-count').textContent=trips;
+  document.getElementById('trips-val').textContent=trips;
+  document.getElementById('earn-val').textContent='₱'+earned;
+  document.getElementById('pax-val').textContent=pax;
+},45000);
+
+setInterval(()=>{
+  const stops=getStops(curRoute.code);
+  if(stops.length&&Math.random()>.55){
+    const i=Math.floor(Math.random()*stops.length);
+    const el=document.getElementById('d'+i);
+    if(el){
+      const cur=parseInt(el.textContent)||0;
+      if(cur<10)el.textContent=cur+1;
+      showToast('New commuter waiting at '+stops[i].name);
+    }
+  }
+},12000);
+
+// Nearby drivers management - by route
+const driversByRoute = {
+  '13C': [
+    {id:1,name:'Jose Tan (Unit 1)',plate:'CEB-4521',seats:12,pos:'ahead',dist:1.2,badge:'J',color:'#3B82F6'},
+    {id:2,name:'Maria Santos (Unit 2)',plate:'CEB-7790',seats:5,pos:'behind',dist:0.8,badge:'M',color:'#7C3AED'},
+    {id:3,name:'Pedro Reyes (Unit 3)',plate:'CEB-3301',seats:0,pos:'behind',dist:2.4,badge:'P',color:'#059669'},
+    {id:4,name:'Daniel Luz (Unit 4)',plate:'CEB-5678',seats:8,pos:'alongside',dist:0,badge:'D',color:'#F59E00'}
+  ],
+  '04L': [
+    {id:5,name:'Ana Cruz (Unit 1)',plate:'CEB-8901',seats:15,pos:'ahead',dist:0.9,badge:'A',color:'#EC4899'},
+    {id:6,name:'Benito Reyes (Unit 2)',plate:'CEB-2345',seats:7,pos:'behind',dist:1.5,badge:'B',color:'#8B5CF6'},
+    {id:7,name:'Carmen Lopez (Unit 3)',plate:'CEB-6789',seats:3,pos:'behind',dist:3.2,badge:'C',color:'#10B981'}
+  ],
+  '04M': [
+    {id:8,name:'Diego Santos (Unit 1)',plate:'CEB-1111',seats:10,pos:'ahead',dist:2.1,badge:'D',color:'#F59E00'},
+    {id:9,name:'Elena Garcia (Unit 2)',plate:'CEB-2222',seats:6,pos:'behind',dist:1.8,badge:'E',color:'#3B82F6'},
+    {id:10,name:'Felix Torres (Unit 3)',plate:'CEB-3333',seats:2,pos:'behind',dist:4.0,badge:'F',color:'#EF4444'}
+  ],
+  '03Q': [
+    {id:11,name:'Gloria Mendoza (Unit 1)',plate:'CEB-4444',seats:14,pos:'ahead',dist:1.7,badge:'G',color:'#8B5CF6'},
+    {id:12,name:'Henry Valdez (Unit 2)',plate:'CEB-5555',seats:9,pos:'behind',dist:2.3,badge:'H',color:'#10B981'}
+  ],
+  '06H': [
+    {id:13,name:'Isabel Reyes (Unit 1)',plate:'CEB-6666',seats:11,pos:'ahead',dist:0.8,badge:'I',color:'#EC4899'},
+    {id:14,name:'Juan Carlos (Unit 2)',plate:'CEB-7777',seats:4,pos:'behind',dist:1.9,badge:'J',color:'#F59E00'}
+  ]
+};
+
+let driversData = driversByRoute['13C']; // Start with 13C drivers
+
+function getSeatsClass(seats){
+  if(seats===0)return 'seats-full';
+  if(seats<=3)return 'seats-few';
+  return 'seats-many';
+}
+
+function getSeatsText(seats){
+  if(seats===0)return 'FULL';
+  return seats+' seat'+(seats!==1?'s':'');
+}
+
+function getPosIcon(pos){
+  if(pos==='ahead')return '↑';
+  if(pos==='alongside')return '↔';
+  return '↓';
+}
+
+function getPosLabel(pos){
+  if(pos==='ahead')return 'ahead';
+  if(pos==='alongside')return 'next to you';
+  return 'behind';
+}
+
+function getPosClass(pos){
+  if(pos==='ahead')return 'pos-ahead';
+  if(pos==='alongside')return 'pos-side';
+  return 'pos-behind';
+}
+
+function updateDriversHeader(){
+  const hdr = document.querySelector('.drivers-hdr span:first-child');
+  const count = document.getElementById('drivers-count');
+  if(hdr) hdr.textContent = 'Drivers on Route ' + curRoute.code;
+  if(count) count.textContent = driversData.length + ' online';
+}
+
+function updateDriverUI(){
+  // Hide all extra driver items first
+  for(let i=0; i<6; i++){
+    const item = document.getElementById('driver-' + i);
+    if(item) item.style.display = 'none';
+  }
+  
+  driversData.forEach((d,idx)=>{
+    const seatClass=getSeatsClass(d.seats);
+    const seatText=getSeatsText(d.seats);
+    const posIcon=getPosIcon(d.pos);
+    const posLabel=getPosLabel(d.pos);
+    const posClass=getPosClass(d.pos);
+    
+    // Update badge color and text
+    const badgeEl = document.querySelectorAll('.driver-badge')[idx];
+    if(badgeEl){
+      badgeEl.style.background = d.color;
+      badgeEl.textContent = d.badge;
+    }
+    
+    // Update name
+    const nameEl = document.querySelectorAll('.driver-name')[idx];
+    if(nameEl) nameEl.textContent = d.name;
+    
+    // Update plate
+    const detailsEl = document.querySelectorAll('.driver-details')[idx];
+    if(detailsEl){
+      const plateMatch = detailsEl.innerHTML.match(/Plate: [^·]+/);
+      detailsEl.innerHTML = 'Plate: ' + d.plate + ' · <span class="driver-seats ' + seatClass + '" id="d' + idx + '-seats">' + seatText + '</span>';
+    }
+    
+    // Update position
+    const posEl = document.querySelectorAll('.driver-pos')[idx];
+    if(posEl){
+      if(d.pos==='alongside'){
+        posEl.innerHTML=`<span class="pos-icon">${posIcon}</span> Same stop<br>${posLabel}`;
+      }else{
+        posEl.innerHTML=`<span class="pos-icon">${posIcon}</span> ${d.dist.toFixed(1)} km<br>${posLabel}`;
+      }
+      posEl.className='driver-pos '+posClass;
+    }
+    
+    // Show the item if it's extra
+    if(idx >= 4){
+      const item = document.getElementById('driver-' + idx);
+      if(item) item.style.display = 'block';
+    }
+  });
+}
+
+function refreshDrivers(){
+  driversData.forEach(d=>{
+    if(d.pos!=='alongside'){
+      d.dist=Math.max(0.2,d.dist+(Math.random()-0.5)*0.4);
+    }
+    d.seats=Math.max(0,Math.min(18,d.seats+Math.floor((Math.random()-0.6)*2)));
+    // Occasionally switch positions
+    if(Math.random()>0.7){
+      const positions=['ahead','alongside','behind'];
+      const current=positions.indexOf(d.pos);
+      d.pos=positions[(current+Math.floor(Math.random()*2)+1)%3];
+      if(d.pos==='alongside')d.dist=0;
+    }
+  });
+  updateDriverUI();
+  showToast('Driver info refreshed ✓');
+}
+
+setInterval(()=>{
+  driversData.forEach(d=>{
+    if(d.pos!=='alongside'){
+      d.dist=Math.max(0.2,d.dist+(Math.random()-0.5)*0.3);
+    }
+    d.seats=Math.max(0,Math.min(18,d.seats+Math.floor((Math.random()-0.65))));
+    // Randomly change position
+    if(Math.random()>0.8){
+      const positions=['ahead','alongside','behind'];
+      d.pos=positions[Math.floor(Math.random()*3)];
+      if(d.pos==='alongside')d.dist=0;
+    }
+  });
+  updateDriverUI();
+},18000);
+
+document.addEventListener('click',e=>{
+  const p=document.getElementById('route-picker');
+  if(!p.contains(e.target)&&!e.target.classList.contains('rfbtn'))closeRoutePicker();
+});
+
+filterRoutes();
+renderStops();
+updateDriverUI();
+updateDriversHeader();
+</script>
