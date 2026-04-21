@@ -177,20 +177,39 @@ body {
   font-weight: bold;
   padding: 15px;
   border-radius: 10px;
-  width: 300px;
+  width: 150px;
   height: 150px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: absolute; /* Positioning the container */
   bottom: 10px; /* 10px gap from the bottom */
-  right: 10px; /* Align to the right with 10px margin */
+  right: 40px; /* Align to the right with 10px margin */
   border: 2px solid #FFFFFF; /* Added white border with weight of 2px */
+}
+
+
+.scan-qr-container img {
+  width: 150px;   /* adjust size */
+  height: 150px;
+  object-fit: contain; 
 }
 
 .tap-sticker-container {
   position: absolute;   
-  bottom: 70px;         
-  left: 550px;          
+  bottom: 10px;         
+  left: 510px;          
   font-size: 30px;
   font-weight: bold;
   color: #FFFFFF;
+  display: flex;             
+  flex-direction: column;    
+  align-items: center;      
 }
+
+.tap-sticker-container img {
+  width: 50px;    
+  height: 50px;
+  object-fit: contain; 
+  transform: rotate(90deg); 
+  margin-top: 8px;      
+}
+
